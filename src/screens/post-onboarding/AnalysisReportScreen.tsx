@@ -82,7 +82,7 @@ export const AnalysisReportScreen = ({
         {/* Minimal header */}
         <header className="flex items-center justify-between px-5 pt-3 pb-2">
           <div className="flex items-center gap-2">
-            <QinoMark size={22} color={palette.midnight} />
+            <QinoMark size={88} color={palette.midnight} />
             <span
               className="text-[13px]"
               style={{
@@ -92,7 +92,7 @@ export const AnalysisReportScreen = ({
                 color: palette.midnight,
               }}
             >
-              QINO REPORT
+              REPORT
             </span>
           </div>
           <div

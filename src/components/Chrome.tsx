@@ -28,19 +28,8 @@ export const TopBar = ({
   onBell?: () => void;
 }) => (
   <header className="flex items-center justify-between px-5 pt-3 pb-2">
-    <div className="flex items-center gap-2">
-      <QinoMark size={26} color={palette.midnight} />
-      <span
-        className="text-[16px]"
-        style={{
-          fontFamily: fonts.title,
-          fontWeight: 600,
-          letterSpacing: "0.18em",
-          color: palette.midnight,
-        }}
-      >
-        QINO
-      </span>
+    <div className="flex items-center">
+      <QinoMark size={96} color={palette.midnight} />
     </div>
     <div className="flex items-center gap-2">
       <button
