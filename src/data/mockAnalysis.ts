@@ -189,4 +189,85 @@ export const mockAnalysisReport: AnalysisReport = {
       ],
     },
   ],
+
+  currentPhase: {
+    name: "Foundation Phase",
+    mainFocus: "Lower-face definition + skin clarity",
+    explanation:
+      "Your highest-impact path is improving facial softness, skin consistency, and grooming frame before moving into advanced refinements.",
+  },
+
+  productStackPreview: {
+    essentials: [
+      { id: "p_cleanser", name: "Gentle cleanser", categoryLabel: "Cleanser", bucketLabel: "Essential" },
+      { id: "p_moisturizer", name: "Hydrating moisturizer", categoryLabel: "Moisturizer", bucketLabel: "Essential" },
+      { id: "p_spf", name: "SPF 50", categoryLabel: "SPF", bucketLabel: "Essential" },
+    ],
+    targeted: [
+      { id: "p_texture", name: "Texture serum", categoryLabel: "Texture", bucketLabel: "Targeted" },
+      { id: "p_barrier", name: "Barrier support", categoryLabel: "Barrier", bucketLabel: "Targeted" },
+    ],
+    optional: [
+      { id: "p_exfoliant", name: "Optional exfoliant", categoryLabel: "Exfoliant", bucketLabel: "Optional" },
+    ],
+    totalCount: 6,
+  },
+
+  pathwaysPreview: {
+    comfortSummary: "Open to: Products + Clinics",
+    levels: [
+      {
+        number: 1,
+        title: "At-home",
+        language: "Educational guidance only",
+        locked: false,
+        accentKey: "softSage",
+      },
+      {
+        number: 2,
+        title: "Products",
+        language: "Potential pathway",
+        locked: false,
+        accentKey: "paleBlue",
+      },
+      {
+        number: 3,
+        title: "Clinic consult",
+        language: "Worth discussing with a qualified professional",
+        locked: false,
+        accentKey: "softLavender",
+      },
+      {
+        number: 4,
+        title: "Injectables / Surgery",
+        language: "Worth discussing with a qualified professional",
+        locked: true,
+        accentKey: "softBlush",
+      },
+    ],
+  },
+
+  protocolPreview: [
+    {
+      number: 1,
+      name: "Foundation",
+      dayRange: "Days 1–30",
+      state: "active",
+      focus: "Skin basics, grooming, body composition",
+    },
+    {
+      number: 2,
+      name: "Refinement",
+      dayRange: "Days 31–60",
+      state: "locked",
+      focus: "Targeted skin, frame work, consistency",
+    },
+    {
+      number: 3,
+      name: "Optimization",
+      dayRange: "Days 61–90",
+      state: "locked",
+      focus: "Polish, advanced steps, re-analysis",
+    },
+  ],
 };
