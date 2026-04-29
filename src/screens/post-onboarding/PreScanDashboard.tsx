@@ -75,9 +75,6 @@ export const PreScanDashboard = ({
             boxShadow: shadows.hero,
           }}
         >
-          <div className="absolute -right-8 -bottom-8 opacity-15">
-            <QinoMark size={180} color={palette.midnight} />
-          </div>
 
           <div className="relative">
             <Eyebrow color={palette.textMuted}>{heroEyebrow}</Eyebrow>
