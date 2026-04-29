@@ -21,6 +21,7 @@ export {
   compositionOptions,
   emptyOnboardingAnswers,
   mockCompletedOnboarding,
+  onboardingContent,
 } from "./mockOnboarding";
 export { mockAnalysisReport } from "./mockAnalysis";
 export { mockProtocol } from "./mockProtocol";
@@ -36,4 +37,8 @@ export {
   mockLockedPreviews,
   mockScanPromises,
   mockScanMetaPills,
+  preScanContent,
+  processingContent,
+  guidedScanContent,
+  reportContent,
 } from "./mockDashboard";

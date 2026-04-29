@@ -214,3 +214,130 @@ export const mockCompletedOnboarding: OnboardingAnswers = {
     neutralPrefs: [],
   },
 };
+
+// =====================================================================
+// Onboarding screen content — titles, subtitles, button labels
+// All user-facing copy in one place, easy to swap or A/B test later.
+// =====================================================================
+
+export const onboardingContent = {
+  welcome: {
+    eyebrow: "Welcome to QINO",
+    title: "Your personal aesthetics command center",
+    intro:
+      "QINO analyzes your face, identifies your highest-impact priorities, and turns that into a daily protocol you can actually follow.",
+    promises: [
+      {
+        iconKey: "target",
+        label: "Personalized priority map",
+        sub: "What matters most for your face",
+        bgKey: "softBlush",
+      },
+      {
+        iconKey: "sparkles",
+        label: "Daily execution system",
+        sub: "Skin, frame, foundation — all in one place",
+        bgKey: "softPeach",
+      },
+      {
+        iconKey: "camera",
+        label: "Visual progress tracking",
+        sub: "See changes with periodic re-analysis",
+        bgKey: "softSage",
+      },
+    ],
+    safetyDisclaimer:
+      "QINO provides educational aesthetic guidance only. Medical treatments should be discussed with a qualified professional.",
+    ctaLabel: "Get Started",
+  },
+
+  goals: {
+    eyebrow: "Step 1 · Goals",
+    title: "What matters most to you?",
+    subtitle: "Pick one or more. We'll weight your protocol around these.",
+  },
+
+  personalization: {
+    eyebrow: "Step 2 · Personalization",
+    title: "Personalize your analysis",
+    subtitle:
+      "This helps QINO compare the right reference ranges and tailor the language of your protocol.",
+    genderQuestion: "How should QINO personalize your analysis?",
+    directionQuestion: "What aesthetic direction fits your goal?",
+    safetyNote:
+      "QINO uses these inputs to set baseline references — never to assume a specific identity or outcome. You can update any of this from your settings.",
+  },
+
+  comfort: {
+    eyebrow: "Step 3 · Pathways",
+    title: "Which improvement paths are you open to?",
+    subtitle:
+      "Select all that apply. QINO will only show recommendations within your comfort zone. You can change this anytime.",
+    safetyNote:
+      "QINO provides educational aesthetic guidance. Medical treatments, prescriptions, injections, and procedures should be discussed with qualified professionals.",
+  },
+
+  budget: {
+    eyebrow: "Step 4 · Budget",
+    title: "What's your spending range?",
+    subtitle: "Product recommendations will match this tier.",
+  },
+
+  routine: {
+    eyebrow: "Step 5 · Time",
+    title: "How much time can you commit?",
+    subtitle: "Be honest — consistency beats complexity every time.",
+  },
+
+  body: {
+    eyebrow: "Step 6 · Body Context",
+    title: "Body composition context",
+    subtitle:
+      "QINO uses this only to assess facial softness and leanness — never to become a fitness app.",
+    compositionLabel: "Composition (optional)",
+    safetyNote:
+      "Used only to inform facial softness, jaw definition, cheek fullness, and overall facial leanness. Never to track macros or build workout plans.",
+    skipLabel: "Skip this step",
+  },
+
+  skin: {
+    eyebrow: "Step 7 · Skin",
+    title: "Any skin concerns?",
+    subtitle: "Select all that apply. We'll prioritize accordingly.",
+  },
+
+  hair: {
+    eyebrow: "Step 8 · Hair & Frame",
+    title: "Hair & facial frame",
+    subtitle:
+      "Helps QINO tailor hairstyle, hairline, brow, and grooming recommendations.",
+    hairlineLabel: "Hairline concern",
+    densityLabel: "Hair density",
+    styleGoalLabel: "Style / grooming goal",
+    styleGoalPlaceholder: "e.g. sharper frame, more volume, better hairline balance",
+    facialHairLabel: "Facial hair preference",
+    framingLabel: "Hair framing preference",
+    neutralLabel: "Additional grooming preferences",
+    skipLabel: "Skip this step",
+  },
+
+  scanHandoff: {
+    eyebrow: "Final Step · Scan",
+    title: "You're ready for your QINO scan",
+    subtitle:
+      "For the most accurate analysis, complete your guided photo scan when you have 3–5 minutes, natural light, and privacy.",
+    cardEyebrow: "Guided Face Scan",
+    cardHeadline: "Six angles. About four minutes.",
+    promises: [
+      "6 required angles",
+      "Lighting and blur checks",
+      "Retake any photo before submitting",
+      "Unlocks analysis, protocol, products, pathways",
+    ],
+    primaryCta: "Start scan now",
+    secondaryCta: "Go to dashboard",
+    footnote:
+      "You can start your scan anytime from the Today screen. Your dashboard will be in pre-scan mode until photos are submitted.",
+  },
+};
+
