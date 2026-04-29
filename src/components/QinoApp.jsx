@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Home, Scan, Pill, BarChart3, MessageCircle, Bell, Settings,
+  Home, Scan, Pill as PillIcon, BarChart3, MessageCircle, Bell, Settings,
   Pencil, Camera, MessageSquare, Layers, Sun, Sparkles, Moon,
   ChevronRight, ArrowRight, ArrowDown, Plus, Check, X, Lock,
   Calendar, Star, Send, ListChecks,
@@ -229,7 +229,7 @@ const TopBar = () => (
 const tabs = [
   { id: "today", label: "Today", icon: Home },
   { id: "analysis", label: "Analysis", icon: Scan },
-  { id: "protocol", label: "Protocol", icon: Pill },
+  { id: "protocol", label: "Protocol", icon: PillIcon },
   { id: "progress", label: "Progress", icon: BarChart3 },
   { id: "coach", label: "Coach", icon: MessageCircle },
 ];
@@ -1458,7 +1458,7 @@ const CoachScreen = () => {
   const prompts = [
     { text: "Why is lower-face definition my priority?", icon: Sparkles, bg: C.softBlush },
     { text: "What products should I use for uneven skin?", icon: Layers, bg: C.softPeach },
-    { text: "What clinic treatments are worth discussing?", icon: Pill, bg: C.softLavender },
+    { text: "What clinic treatments are worth discussing?", icon: PillIcon, bg: C.softLavender },
     { text: "What should I ignore for now?", icon: ListChecks, bg: C.softSage },
   ];
 
