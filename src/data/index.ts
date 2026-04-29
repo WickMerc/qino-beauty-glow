@@ -29,7 +29,14 @@ export { mockProductStack } from "./mockProducts";
 export { mockTreatmentPathways } from "./mockTreatmentPathways";
 export { mockProgress } from "./mockProgress";
 export { mockScanState, scanPrepChecklist } from "./mockScan";
-export { mockCoachState, QINO_COACH_FALLBACK_REPLY, QINO_SAFETY_NOTE } from "./mockCoach";
+export {
+  mockCoachState,
+  coachSuggestedPrompts,
+  coachResponses,
+  coachContext,
+  QINO_COACH_FALLBACK_REPLY,
+  QINO_SAFETY_NOTE,
+} from "./mockCoach";
 export {
   mockTodayFocus,
   mockComingUp,
