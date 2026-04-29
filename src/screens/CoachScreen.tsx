@@ -74,7 +74,7 @@ export const CoachScreen = ({
       {/* Header */}
       <div className="px-5 pt-1 pb-3">
         <div className="flex items-center gap-2">
-          <QinoMark size={20} />
+          <QinoMark size={28} />
           <Eyebrow>Coach</Eyebrow>
         </div>
         <h1

@@ -75,6 +75,13 @@ export const PreScanDashboard = ({
             boxShadow: shadows.hero,
           }}
         >
+          <div
+            className="absolute pointer-events-none"
+            style={{ top: 16, right: 16, opacity: 0.16 }}
+            aria-hidden
+          >
+            <QinoMark size={56} />
+          </div>
 
           <div className="relative">
             <Eyebrow color={palette.textMuted}>{heroEyebrow}</Eyebrow>

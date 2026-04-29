@@ -99,6 +99,13 @@ export const TodayScreen = ({
         }}
       >
         <div
+          className="absolute pointer-events-none"
+          style={{ top: 14, right: 14, opacity: 0.16 }}
+          aria-hidden
+        >
+          <QinoMark size={52} />
+        </div>
+        <div
           className="absolute top-0 right-10 bottom-0 w-px opacity-25"
           style={{
             background: `linear-gradient(180deg, transparent, ${palette.midnight}, transparent)`,

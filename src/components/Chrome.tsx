@@ -29,7 +29,7 @@ export const TopBar = ({
 }) => (
   <header className="flex items-center justify-between px-5 pt-3 pb-2">
     <div className="flex items-center gap-2">
-      <QinoMark size={28} />
+      <QinoMark size={40} />
     </div>
     <div className="flex items-center gap-2">
       <button

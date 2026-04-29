@@ -82,7 +82,7 @@ export const AnalysisReportScreen = ({
         {/* Minimal header */}
         <header className="flex items-center justify-between px-5 pt-3 pb-2">
           <div className="flex items-center gap-2">
-            <QinoMark size={24} />
+            <QinoMark size={32} />
             <span
               className="text-[13px]"
               style={{

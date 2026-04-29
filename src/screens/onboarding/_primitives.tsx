@@ -299,7 +299,7 @@ export const OnboardingHeader = ({
       </button>
 
       <div className="flex items-center gap-2">
-        <QinoMark size={22} />
+        <QinoMark size={32} />
       </div>
 
       <button
