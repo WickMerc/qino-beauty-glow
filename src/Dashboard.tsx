@@ -1,11 +1,13 @@
 // =====================================================================
-// QINO — Main App Container
-// Single entry point. Imports mock data, passes it to screens via props.
+// QINO — Dashboard
+// The live 5-tab app, shown after onboarding + scan + report are done.
+//
+// All overlays (Product Stack modal, Pathways modal, feature detail
+// screen, full-report re-open) are managed by useDashboardOverlays.
+// Any tab can call into them.
 //
 // BACKEND REPLACEMENT POINT:
 // Replace the `useMockData()` hook below with real data fetching.
-// Each `mock*` import maps 1:1 to a future API endpoint
-// (see comments in /src/data/*.ts for endpoint contracts).
 // =====================================================================
 
 import { useState } from "react";
@@ -20,22 +22,23 @@ import {
   mockTodayFocus,
   mockComingUp,
   mockGreeting,
+  reportContent,
   QINO_SAFETY_NOTE,
   QINO_COACH_FALLBACK_REPLY,
 } from "./data";
 
 import { palette, fonts } from "./theme";
 import { TopBar, BottomNav, type TabId } from "./components/Chrome";
+import {
+  useDashboardOverlays,
+  DashboardOverlays,
+} from "./components/DashboardOverlays";
 import { TodayScreen } from "./screens/TodayScreen";
 import { AnalysisScreen } from "./screens/AnalysisScreen";
 import { ProtocolScreen } from "./screens/ProtocolScreen";
 import { ProgressScreen } from "./screens/ProgressScreen";
 import { CoachScreen } from "./screens/CoachScreen";
 
-/**
- * Future replacement: useQinoData() that fetches via API/Supabase.
- * Same return shape, so screens never need to change.
- */
 const useMockData = () => ({
   user: mockUser,
   protocol: mockProtocol,
@@ -52,10 +55,7 @@ const useMockData = () => ({
 export default function Dashboard() {
   const data = useMockData();
   const [tab, setTab] = useState<TabId>("today");
-
-  // Modal state — wire your real modals here later
-  const [productsOpen, setProductsOpen] = useState(false);
-  const [pathwaysOpen, setPathwaysOpen] = useState(false);
+  const overlays = useDashboardOverlays();
 
   const productCount =
     data.productStack.essentials.length + data.productStack.targeted.length;
@@ -95,17 +95,18 @@ export default function Dashboard() {
             comingUp={data.comingUp}
             greetingPrefix={data.greetingPrefix}
             productCount={productCount}
-            pathwaysSummary="Products + Clinics"
+            pathwaysSummary={reportContent.pathwaysSummary.replace("Open to: ", "")}
             onTab={setTab}
-            onOpenProducts={() => setProductsOpen(true)}
-            onOpenPathways={() => setPathwaysOpen(true)}
+            onOpenProducts={overlays.openProducts}
+            onOpenPathways={overlays.openPathways}
           />
         )}
 
         {tab === "analysis" && (
           <AnalysisScreen
             report={data.report}
-            subtitle="AI-powered analysis with priority ranking"
+            onOpenFeatureGroup={overlays.openFeatureGroup}
+            onOpenFullReport={overlays.openFullReport}
           />
         )}
 
@@ -138,27 +139,8 @@ export default function Dashboard() {
 
       <BottomNav active={tab} onChange={setTab} />
 
-      {/* Product Stack and Pathways modals will be wired here in a follow-up */}
-      {productsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white p-6 rounded-2xl">
-            <p>Product Stack modal placeholder ({productCount} items)</p>
-            <button onClick={() => setProductsOpen(false)} className="mt-3 underline">
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-      {pathwaysOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white p-6 rounded-2xl">
-            <p>Pathways modal placeholder ({data.pathways.levels.length} levels)</p>
-            <button onClick={() => setPathwaysOpen(false)} className="mt-3 underline">
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Centralized overlays — modals and feature detail screens */}
+      <DashboardOverlays state={overlays} />
     </div>
   );
 }
