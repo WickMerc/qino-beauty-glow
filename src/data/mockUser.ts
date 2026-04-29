@@ -18,6 +18,8 @@ export const mockAppUserState: AppUserState = {
   profile: mockUser,
   stage: "complete",
   scanStatus: "completed",
+  subscriptionStatus: "free",
+  trialEndsAt: null,
   onboardingCompleted: true,
   reportGenerated: true,
 };

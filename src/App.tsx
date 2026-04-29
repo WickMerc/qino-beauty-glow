@@ -43,9 +43,10 @@ export default function App() {
       {stage === "onboarding" && (
         <OnboardingFlow
           onClose={() => {
-            // User dismissed onboarding mid-flow → drop them on dashboard for now.
-            // Real implementation: persist progress, show "Resume onboarding" CTA.
-            setStage("complete");
+            // For prototype: closing onboarding mid-flow keeps them in onboarding.
+            // Real implementation: persist progress, allow exit, show "Resume onboarding"
+            // CTA when they reopen the app. Per QINO's design, the user has no app
+            // access until a scan is completed — so closing should not unlock anything.
           }}
           onComplete={(result) => {
             setPostEntryStage(result.startScan ? "scan" : "prescan");
