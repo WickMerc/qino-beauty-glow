@@ -47,6 +47,13 @@ export const TrialOfferCard = ({
           boxShadow: shadows.card,
         }}
       >
+        <div
+          className="absolute pointer-events-none"
+          style={{ top: 12, right: 12, opacity: 0.14 }}
+          aria-hidden
+        >
+          <QinoMark size={44} />
+        </div>
         <div className="relative">
           <div className="flex items-center gap-2">
             <div
