@@ -1607,9 +1607,12 @@ export default function QinoPostOnboarding({ initialState = "prescan", onTabNavi
         <AnalysisReport
           onContinue={() => setState("complete")}
           onCardClick={handleCardClick}
+          onOpenProducts={handleOpenProducts}
+          onOpenPathways={handleOpenPathways}
+          onNavigateProtocol={handleNavigateProtocol}
         />
       )}
-      {state === "complete" && <QinoApp />}
+      {state === "complete" && <QinoApp initialTab={pendingTab ?? "today"} />}
     </div>
   );
 }
