@@ -7,6 +7,10 @@ import {
   Stethoscope, ArrowUpRight, Minus,
 } from "lucide-react";
 import QinoApp from "../App";
+import { mockAnalysisReport } from "../data/mockAnalysis";
+import { mockUser } from "../data/mockUser";
+import { getIcon } from "../iconRegistry";
+import { accentByKey } from "../theme";
 
 /* =========================================================
    QINO — Post-onboarding states + Mock Report
@@ -730,10 +734,31 @@ export const ProcessingDashboard = ({ onComplete, userName = "Hadley" }) => {
 };
 
 /* =========================================================
-   MOCK ANALYSIS REPORT SCREEN (the bridge after processing)
+   QINO ANALYSIS REPORT SCREEN
+   Reads everything from typed mockAnalysisReport (src/data/mockAnalysis.ts).
+   Sections: A Summary · B Strengths · C Opportunities · D Priority Map
+             E Feature Breakdown · F Product Stack · G Pathways · H Protocol
    ========================================================= */
-export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }) => {
-  const handleClick = (cardId) => onCardClick && onCardClick(cardId);
+const accent = (key, fallback = C.stone) => accentByKey[key] ?? fallback;
+const impactPillColors = (impact) => {
+  if (impact === "high") return { bg: C.midnight, color: C.stone, label: "High Impact" };
+  if (impact === "medium") return { bg: C.softPeach, color: C.midnight, label: "Medium Impact" };
+  return { bg: C.stone, color: C.textMuted, label: "Low Impact" };
+};
+
+export const AnalysisReport = ({
+  onContinue,
+  onOpenProducts,
+  onOpenPathways,
+  onNavigateProtocol,
+  onCardClick,
+  report = mockAnalysisReport,
+  user = mockUser,
+}) => {
+  const logCard = (id) => {
+    console.log("[QINO Report] Card:", id);
+    onCardClick && onCardClick(id);
+  };
 
   return (
     <div className="min-h-screen w-full" style={{ background: C.ivory, fontFamily: FONTS.body, color: C.ink }}>
@@ -757,7 +782,7 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
             }}
           >
             <span className="text-[12px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.midnight }}>
-              {report.user.initial}
+              {user.initial}
             </span>
           </div>
         </header>
@@ -772,7 +797,7 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
             >
               Here's what
               <br />
-              we see, {report.user.name}.
+              we see, {user.name}.
             </h1>
           </div>
 
@@ -815,64 +840,96 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
           <div>
             <SectionHeading>Score overview</SectionHeading>
             <div className="grid grid-cols-2 gap-2.5">
-              {report.scores.map((s) => (
-                <Card
-                  key={s.label}
-                  bg={s.bg}
-                  padding="p-4"
-                  radius="rounded-[20px]"
-                  onClick={() => handleClick(`score:${s.label}`)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p
-                        className="text-[10.5px]"
-                        style={{ fontFamily: FONTS.subtitle, fontWeight: 500, color: C.textMuted }}
-                      >
-                        {s.label}
-                      </p>
-                      <p
-                        className="text-[24px] leading-none mt-1.5"
-                        style={{
-                          fontFamily: FONTS.title,
-                          fontWeight: 600,
-                          letterSpacing: "-0.025em",
-                          color: C.ink,
-                        }}
-                      >
-                        {s.value}
-                      </p>
-                      <p
-                        className="text-[10px] mt-0.5"
-                        style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: s.color }}
-                      >
-                        {s.status}
-                      </p>
+              {report.scores.map((s) => {
+                const bg = accent(s.bgAccent, C.paleBlue);
+                const stroke = accent(s.colorAccent, C.midnight);
+                return (
+                  <Card
+                    key={s.id}
+                    bg={bg}
+                    padding="p-4"
+                    radius="rounded-[20px]"
+                    onClick={() => logCard(`score:${s.id}`)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-[10.5px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 500, color: C.textMuted }}>
+                          {s.label}
+                        </p>
+                        <p
+                          className="text-[24px] leading-none mt-1.5"
+                          style={{ fontFamily: FONTS.title, fontWeight: 600, letterSpacing: "-0.025em", color: C.ink }}
+                        >
+                          {s.value}
+                        </p>
+                        <p className="text-[10px] mt-0.5" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: stroke }}>
+                          {s.statusLabel}
+                        </p>
+                      </div>
+                      <Donut value={s.value} size={36} stroke={3.5} color={stroke} track="rgba(255,255,255,0.55)" />
                     </div>
-                    <Donut value={s.value} size={36} stroke={3.5} color={s.color} track="rgba(255,255,255,0.55)" />
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
-          {/* TOP STRENGTHS */}
+          {/* A. QINO SUMMARY — Current phase */}
+          <div>
+            <SectionHeading>QINO summary</SectionHeading>
+            <Card padding="p-5" radius="rounded-[24px]" bg={C.white}>
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
+                  style={{ background: C.softSage }}
+                >
+                  <Sparkles size={16} strokeWidth={1.6} color={C.midnight} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Eyebrow>Current phase</Eyebrow>
+                  <p
+                    className="mt-1 text-[16px]"
+                    style={{ fontFamily: FONTS.title, fontWeight: 600, letterSpacing: "-0.02em", color: C.ink }}
+                  >
+                    {report.currentPhase.name}
+                  </p>
+                </div>
+              </div>
+              <div
+                className="rounded-[14px] p-3 mb-3"
+                style={{ background: C.paleBlue, border: `1px solid ${C.hairline}` }}
+              >
+                <Eyebrow color={C.textMuted}>Main focus</Eyebrow>
+                <p
+                  className="mt-1 text-[13.5px]"
+                  style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}
+                >
+                  {report.currentPhase.mainFocus}
+                </p>
+              </div>
+              <p className="text-[12.5px] leading-relaxed" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
+                {report.currentPhase.explanation}
+              </p>
+            </Card>
+          </div>
+
+          {/* B. TOP STRENGTHS (4) */}
           <div>
             <SectionHeading>Top strengths</SectionHeading>
             <div className="space-y-2">
-              {report.strengths.map((s, i) => {
-                const Icon = s.icon;
+              {report.strengths.map((s) => {
+                const Icon = getIcon(s.iconKey);
                 return (
                   <Card
-                    key={i}
+                    key={s.id}
                     padding="p-4"
                     radius="rounded-[18px]"
-                    onClick={() => handleClick(`strength:${i}`)}
+                    onClick={() => logCard(`strength:${s.id}`)}
                     className="flex items-center gap-3"
                   >
                     <div
                       className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
-                      style={{ background: s.accent }}
+                      style={{ background: accent(s.accentKey, C.softSage) }}
                     >
                       <Icon size={15} strokeWidth={1.6} color={C.midnight} />
                     </div>
@@ -880,10 +937,7 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
                       <p className="text-[13.5px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}>
                         {s.label}
                       </p>
-                      <p
-                        className="text-[11.5px] mt-0.5"
-                        style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
-                      >
+                      <p className="text-[11.5px] mt-0.5" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
                         {s.sub}
                       </p>
                     </div>
@@ -894,23 +948,24 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
             </div>
           </div>
 
-          {/* TOP IMPROVEMENT OPPORTUNITIES */}
+          {/* C. IMPROVEMENT OPPORTUNITIES (4) */}
           <div>
             <SectionHeading>Improvement opportunities</SectionHeading>
             <div className="space-y-2">
-              {report.opportunities.map((o, i) => {
-                const Icon = o.icon;
+              {report.opportunities.map((o) => {
+                const Icon = getIcon(o.iconKey);
+                const pill = impactPillColors(o.impact);
                 return (
                   <Card
-                    key={i}
+                    key={o.id}
                     padding="p-4"
                     radius="rounded-[18px]"
-                    onClick={() => handleClick(`opportunity:${i}`)}
+                    onClick={() => logCard(`opportunity:${o.id}`)}
                     className="flex items-center gap-3"
                   >
                     <div
                       className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
-                      style={{ background: o.accent }}
+                      style={{ background: accent(o.accentKey, C.softBlush) }}
                     >
                       <Icon size={15} strokeWidth={1.6} color={C.midnight} />
                     </div>
@@ -918,60 +973,43 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
                       <p className="text-[13.5px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}>
                         {o.label}
                       </p>
-                      <p
-                        className="text-[11.5px] mt-0.5"
-                        style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
-                      >
+                      <p className="text-[11.5px] mt-0.5" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
                         {o.sub}
                       </p>
                     </div>
-                    <Pill
-                      bg={o.impact === "High" ? C.midnight : C.stone}
-                      color={o.impact === "High" ? C.stone : C.textMuted}
-                    >
-                      {o.impact}
-                    </Pill>
+                    <Pill bg={pill.bg} color={pill.color}>{pill.label}</Pill>
                   </Card>
                 );
               })}
             </div>
           </div>
 
-          {/* PRIORITY MAP */}
+          {/* D. PRIORITY MAP */}
           <div>
             <SectionHeading>Priority map</SectionHeading>
             <Card padding="p-5" radius="rounded-[22px]">
               {[
                 { label: "High Impact", items: report.priorities.high, color: C.midnight, accent: C.softBlush },
                 { label: "Medium Impact", items: report.priorities.medium, color: C.steel, accent: C.softPeach },
-                { label: "Low Priority", items: report.priorities.low, color: C.steelLight, accent: C.stone },
+                { label: "Low / Ignore", items: report.priorities.low, color: C.steelLight, accent: C.stone },
               ].map((tier, i, arr) => (
                 <div
                   key={tier.label}
                   className="py-3"
-                  style={{
-                    borderBottom: i !== arr.length - 1 ? `1px solid ${C.hairline}` : "none",
-                  }}
+                  style={{ borderBottom: i !== arr.length - 1 ? `1px solid ${C.hairline}` : "none" }}
                 >
                   <div className="flex items-center gap-2 mb-2.5">
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: tier.color }} />
                     <span
                       className="text-[11px] uppercase"
-                      style={{
-                        fontFamily: FONTS.subtitle,
-                        fontWeight: 600,
-                        letterSpacing: "0.08em",
-                        color: tier.color,
-                      }}
+                      style={{ fontFamily: FONTS.subtitle, fontWeight: 600, letterSpacing: "0.08em", color: tier.color }}
                     >
                       {tier.label}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {tier.items.map((item) => (
-                      <Pill key={item} bg={tier.accent} color={C.midnight}>
-                        {item}
-                      </Pill>
+                      <Pill key={item} bg={tier.accent} color={C.midnight}>{item}</Pill>
                     ))}
                   </div>
                 </div>
@@ -979,55 +1017,49 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
             </Card>
           </div>
 
-          {/* FEATURE BREAKDOWN */}
+          {/* E. FEATURE BREAKDOWN */}
           <div>
             <SectionHeading>Feature breakdown</SectionHeading>
             <div className="space-y-2.5">
-              {report.featureGroups.map((g, i) => {
-                const Icon = g.icon;
+              {report.featureGroups.map((g) => {
+                const Icon = getIcon(g.iconKey);
                 return (
                   <Card
-                    key={g.title}
+                    key={g.id}
                     padding="p-5"
                     radius="rounded-[22px]"
-                    onClick={() => handleClick(`feature:${g.title}`)}
+                    onClick={() => logCard(`feature:${g.id}`)}
                   >
                     <div className="flex items-center gap-3 mb-3">
                       <div
                         className="w-9 h-9 rounded-[12px] flex items-center justify-center flex-shrink-0"
-                        style={{ background: g.accent }}
+                        style={{ background: accent(g.accentKey, C.paleBlue) }}
                       >
                         <Icon size={15} strokeWidth={1.6} color={C.midnight} />
                       </div>
-                      <h3
-                        className="flex-1 text-[14px]"
-                        style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}
-                      >
+                      <h3 className="flex-1 text-[14px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}>
                         {g.title}
                       </h3>
+                      <span className="text-[11px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 500, color: C.textMuted }}>
+                        View details
+                      </span>
                       <ChevronRight size={16} color={C.textMuted} strokeWidth={1.6} />
                     </div>
                     <div className="space-y-0">
-                      {g.rows.map(([k, v], idx) => (
+                      {g.findings.slice(0, 5).map((f, idx) => (
                         <div
-                          key={k}
+                          key={f.key}
                           className="flex items-center justify-between py-2"
                           style={{
                             borderTop: idx === 0 ? `1px solid ${C.hairline}` : "none",
                             borderBottom: `1px solid ${C.hairline}`,
                           }}
                         >
-                          <span
-                            className="text-[12.5px]"
-                            style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
-                          >
-                            {k}
+                          <span className="text-[12.5px]" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
+                            {f.label}
                           </span>
-                          <span
-                            className="text-[12.5px]"
-                            style={{ fontFamily: FONTS.body, fontWeight: 500, color: C.ink }}
-                          >
-                            {v}
+                          <span className="text-[12.5px]" style={{ fontFamily: FONTS.body, fontWeight: 500, color: C.ink }}>
+                            {f.value}
                           </span>
                         </div>
                       ))}
@@ -1038,163 +1070,120 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
             </div>
           </div>
 
-          {/* PRODUCT STACK */}
+          {/* F. PRODUCT STACK PREVIEW */}
           <div>
             <SectionHeading>Your product stack</SectionHeading>
             <Card
               padding="p-5"
               radius="rounded-[22px]"
-              onClick={() => handleClick("productStack")}
+              onClick={() => { logCard("open:productStack"); onOpenProducts && onOpenProducts(); }}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center"
-                  style={{ background: C.softSage }}
-                >
+                <div className="w-10 h-10 rounded-[12px] flex items-center justify-center" style={{ background: C.softSage }}>
                   <Layers size={16} strokeWidth={1.6} color={C.midnight} />
                 </div>
                 <div className="flex-1">
                   <p className="text-[13.5px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}>
-                    {report.productStack.essentials.length + report.productStack.targeted.length} products
-                    recommended
+                    {report.productStackPreview.totalCount} products recommended
                   </p>
-                  <p
-                    className="text-[11.5px] mt-0.5"
-                    style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
-                  >
+                  <p className="text-[11.5px] mt-0.5" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
                     Tied to your priority areas
                   </p>
                 </div>
                 <ArrowUpRight size={15} color={C.midnight} strokeWidth={1.8} />
               </div>
 
-              <div className="space-y-2">
-                {[...report.productStack.essentials, ...report.productStack.targeted].map((p, i) => (
-                  <div
-                    key={p.name}
-                    className="flex items-center gap-3 py-2"
-                    style={{
-                      borderBottom:
-                        i !== report.productStack.essentials.length + report.productStack.targeted.length - 1
-                          ? `1px solid ${C.hairline}`
-                          : "none",
-                    }}
-                  >
-                    <span
-                      className="w-6 text-[11px]"
-                      style={{
-                        fontFamily: FONTS.subtitle,
-                        fontWeight: 500,
-                        color: C.textMuted,
-                      }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span
-                      className="flex-1 text-[12.5px]"
-                      style={{ fontFamily: FONTS.body, fontWeight: 500, color: C.ink }}
-                    >
-                      {p.name}
-                    </span>
-                    <Pill
-                      bg={p.priority === "High" ? C.softBlush : C.stone}
-                      color={p.priority === "High" ? C.midnight : C.textMuted}
-                    >
-                      {p.priority}
-                    </Pill>
+              {[
+                { label: "Essentials", items: report.productStackPreview.essentials, accent: C.softBlush },
+                { label: "Targeted", items: report.productStackPreview.targeted, accent: C.paleBlue },
+                { label: "Optional", items: report.productStackPreview.optional, accent: C.stone },
+              ].map((bucket) => (
+                <div key={bucket.label} className="mt-3">
+                  <Eyebrow color={C.textMuted}>{bucket.label}</Eyebrow>
+                  <div className="mt-2 space-y-1.5">
+                    {bucket.items.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between">
+                        <span className="text-[12.5px]" style={{ fontFamily: FONTS.body, fontWeight: 500, color: C.ink }}>
+                          {p.name}
+                        </span>
+                        <Pill bg={bucket.accent} color={C.midnight}>{p.categoryLabel}</Pill>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </Card>
           </div>
 
-          {/* TREATMENT PATHWAYS */}
+          {/* G. TREATMENT PATHWAYS PREVIEW */}
           <div>
             <SectionHeading>Treatment pathways</SectionHeading>
             <Card
               padding="p-5"
               radius="rounded-[22px]"
-              onClick={() => handleClick("pathways")}
+              onClick={() => { logCard("open:pathways"); onOpenPathways && onOpenPathways(); }}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center"
-                  style={{ background: C.softLavender }}
-                >
+                <div className="w-10 h-10 rounded-[12px] flex items-center justify-center" style={{ background: C.softLavender }}>
                   <Stethoscope size={16} strokeWidth={1.6} color={C.midnight} />
                 </div>
                 <div className="flex-1">
                   <p className="text-[13.5px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}>
-                    {report.pathways.setting}
+                    {report.pathwaysPreview.comfortSummary}
                   </p>
-                  <p
-                    className="text-[11.5px] mt-0.5"
-                    style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
-                  >
-                    3 levels active · 1 locked
+                  <p className="text-[11.5px] mt-0.5" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
+                    Educational guidance only
                   </p>
                 </div>
                 <ArrowUpRight size={15} color={C.midnight} strokeWidth={1.8} />
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                {report.pathways.levels.map((l) => (
+              <div className="space-y-2">
+                {report.pathwaysPreview.levels.map((l) => (
                   <div
-                    key={l.n}
-                    className="rounded-[14px] p-3"
-                    style={{ background: l.accent, border: `1px solid ${C.hairline}` }}
+                    key={l.number}
+                    className="rounded-[14px] p-3 flex items-center gap-3"
+                    style={{
+                      background: l.locked ? C.stone : accent(l.accentKey, C.paleBlue),
+                      border: `1px solid ${C.hairline}`,
+                      opacity: l.locked ? 0.85 : 1,
+                    }}
                   >
-                    <p
-                      className="text-[18px] leading-none"
-                      style={{
-                        fontFamily: FONTS.title,
-                        fontWeight: 600,
-                        color: C.midnight,
-                      }}
+                    <span
+                      className="text-[14px]"
+                      style={{ fontFamily: FONTS.title, fontWeight: 600, color: C.midnight, minWidth: 22 }}
                     >
-                      0{l.n}
-                    </p>
-                    <p
-                      className="text-[11px] mt-1.5"
-                      style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}
-                    >
-                      {l.title}
-                    </p>
-                    <p
-                      className="text-[10px] mt-0.5"
-                      style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
-                    >
-                      {l.count} options
-                    </p>
+                      0{l.number}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12.5px]" style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.ink }}>
+                        {l.title}
+                      </p>
+                      <p className="text-[10.5px] mt-0.5" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
+                        {l.language}
+                      </p>
+                    </div>
+                    {l.locked && <Lock size={12} color={C.textMuted} strokeWidth={1.8} />}
                   </div>
                 ))}
-              </div>
-
-              <div
-                className="mt-2 rounded-[14px] p-3 flex items-center gap-2"
-                style={{ background: C.stone, border: `1px solid ${C.hairline}` }}
-              >
-                <Lock size={11} color={C.textMuted} strokeWidth={1.6} />
-                <span
-                  className="text-[11px]"
-                  style={{ fontFamily: FONTS.body, fontWeight: 500, color: C.textMuted }}
-                >
-                  Level 4 — Injectables / Surgery (locked)
-                </span>
               </div>
             </Card>
           </div>
 
-          {/* 90-DAY PROTOCOL PREVIEW */}
+          {/* H. 90-DAY PROTOCOL PREVIEW */}
           <div>
             <SectionHeading>90-day protocol preview</SectionHeading>
-            <Card padding="p-3" radius="rounded-[22px]" onClick={() => handleClick("protocol")}>
+            <Card
+              padding="p-3"
+              radius="rounded-[22px]"
+              onClick={() => { logCard("open:protocol"); onNavigateProtocol && onNavigateProtocol(); }}
+            >
               <div className="grid grid-cols-3 gap-2">
-                {report.protocolPreview.map((p, i) => {
+                {report.protocolPreview.map((p) => {
                   const active = p.state === "active";
                   return (
                     <div
-                      key={p.phase}
+                      key={p.number}
                       className="rounded-[16px] p-3 relative"
                       style={{
                         background: active ? C.paleBlue : "transparent",
@@ -1204,37 +1193,25 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
                       <div className="flex items-center gap-1.5">
                         <div
                           className="w-5 h-5 rounded-full flex items-center justify-center"
-                          style={{
-                            background: active ? C.midnight : C.stone,
-                          }}
+                          style={{ background: active ? C.midnight : C.stone }}
                         >
                           <span
                             className="text-[10px]"
-                            style={{
-                              fontFamily: FONTS.subtitle,
-                              fontWeight: 600,
-                              color: active ? C.stone : C.textMuted,
-                            }}
+                            style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: active ? C.stone : C.textMuted }}
                           >
-                            {i + 1}
+                            {p.number}
                           </span>
                         </div>
-                        {p.state === "locked" && (
-                          <Lock size={9} color={C.textMuted} strokeWidth={1.8} />
-                        )}
+                        {p.state === "locked" && <Lock size={9} color={C.textMuted} strokeWidth={1.8} />}
                       </div>
                       <p
                         className="text-[11.5px] mt-2"
-                        style={{
-                          fontFamily: FONTS.subtitle,
-                          fontWeight: 600,
-                          color: active ? C.ink : C.textMuted,
-                        }}
+                        style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: active ? C.ink : C.textMuted }}
                       >
-                        {p.phase}
+                        {p.name}
                       </p>
-                      <p className="text-[9.5px] mt-0.5" style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}>
-                        {p.days}
+                      <p className="text-[9.5px] mt-0.5" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
+                        {p.dayRange}
                       </p>
                     </div>
                   );
@@ -1242,39 +1219,10 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
               </div>
               <p
                 className="text-[11.5px] leading-relaxed px-2 pt-3"
-                style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
+                style={{ fontFamily: FONTS.body, color: C.textMuted }}
               >
-                Foundation phase begins today: skin basics, grooming consistency,
-                and body composition awareness for facial leanness.
+                {report.protocolPreview.find((p) => p.state === "active")?.focus}
               </p>
-            </Card>
-          </div>
-
-          {/* WHAT TO IGNORE FOR NOW */}
-          <div>
-            <SectionHeading>What to ignore for now</SectionHeading>
-            <Card padding="p-5" radius="rounded-[22px]" bg={C.stone}>
-              <div className="space-y-2">
-                {report.ignore.map((item, i, arr) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-3 py-1.5"
-                    style={{
-                      borderBottom:
-                        i !== arr.length - 1 ? `1px solid rgba(15,27,38,0.06)` : "none",
-                      paddingBottom: i !== arr.length - 1 ? 10 : 0,
-                    }}
-                  >
-                    <Minus size={12} color={C.steel} strokeWidth={2} />
-                    <span
-                      className="text-[12.5px]"
-                      style={{ fontFamily: FONTS.body, fontWeight: 500, color: C.textMuted }}
-                    >
-                      {item}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </Card>
           </div>
 
@@ -1284,10 +1232,7 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
             style={{ background: C.stone, border: `1px solid ${C.hairline}` }}
           >
             <Sparkles size={11} color={C.textMuted} strokeWidth={1.6} className="mt-0.5 flex-shrink-0" />
-            <p
-              className="text-[10.5px] leading-relaxed"
-              style={{ fontFamily: FONTS.body, fontWeight: 400, color: C.textMuted }}
-            >
+            <p className="text-[10.5px] leading-relaxed" style={{ fontFamily: FONTS.body, color: C.textMuted }}>
               QINO provides educational aesthetic guidance only. Medical treatments,
               prescriptions, injections, and procedures should be discussed with qualified professionals.
             </p>
@@ -1312,7 +1257,7 @@ export const AnalysisReport = ({ onContinue, onCardClick, report = MOCK_REPORT }
             className="flex items-center justify-center gap-2 text-[14px]"
             style={{ fontFamily: FONTS.subtitle, fontWeight: 600, color: C.stone }}
           >
-            Start Foundation Phase
+            Start {report.currentPhase.name}
             <ArrowRight size={15} strokeWidth={2} />
           </span>
         </button>
@@ -1575,10 +1520,27 @@ export const CompleteDashboard = ({ onTab, onOpenProducts, onOpenPathways, repor
    ========================================================= */
 export default function QinoPostOnboarding({ initialState = "prescan", onTabNavigate }) {
   const [state, setState] = useState(initialState);
+  const [pendingTab, setPendingTab] = useState(null);
 
   // Mock log of clicked report cards (visible in browser console)
   const handleCardClick = (cardId) => {
     console.log("[QINO Report] Card clicked:", cardId);
+  };
+
+  // Report → Product Stack: open mock modal (logged for now)
+  const handleOpenProducts = () => {
+    console.log("[QINO Report] Open Product Stack modal");
+    alert("Product Stack modal (mock)");
+  };
+  // Report → Pathways: open mock modal (logged for now)
+  const handleOpenPathways = () => {
+    console.log("[QINO Report] Open Pathways modal");
+    alert("Treatment Pathways modal (mock)");
+  };
+  // Report → Protocol: jump to complete dashboard, land on Protocol tab
+  const handleNavigateProtocol = () => {
+    setPendingTab("protocol");
+    setState("complete");
   };
 
   return (
@@ -1645,9 +1607,12 @@ export default function QinoPostOnboarding({ initialState = "prescan", onTabNavi
         <AnalysisReport
           onContinue={() => setState("complete")}
           onCardClick={handleCardClick}
+          onOpenProducts={handleOpenProducts}
+          onOpenPathways={handleOpenPathways}
+          onNavigateProtocol={handleNavigateProtocol}
         />
       )}
-      {state === "complete" && <QinoApp />}
+      {state === "complete" && <QinoApp initialTab={pendingTab ?? "today"} />}
     </div>
   );
 }

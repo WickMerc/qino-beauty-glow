@@ -21,8 +21,8 @@ import {
 } from "./data";
 import { palette } from "./theme";
 
-export default function App() {
-  const [tab, setTab] = useState<TabId>("today");
+export default function App({ initialTab = "today" as TabId }: { initialTab?: TabId } = {}) {
+  const [tab, setTab] = useState<TabId>(initialTab);
 
   return (
     <div
