@@ -74,8 +74,8 @@ export const CoachScreen = ({
       {/* Header */}
       <div className="px-5 pt-1 pb-3">
         <div className="flex items-center gap-2">
-          <QinoMark size={16} color={palette.midnight} />
-          <Eyebrow>QINO Coach</Eyebrow>
+          <QinoMark size={20} />
+          <Eyebrow>Coach</Eyebrow>
         </div>
         <h1
           className="mt-1 text-[26px] leading-tight"
@@ -201,18 +201,7 @@ export const CoachScreen = ({
             >
               {m.role === "qino" && (
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <QinoMark size={12} color={palette.midnight} />
-                  <span
-                    className="text-[10px] uppercase"
-                    style={{
-                      fontFamily: fonts.subtitle,
-                      fontWeight: 600,
-                      letterSpacing: "0.1em",
-                      color: palette.textMuted,
-                    }}
-                  >
-                    QINO
-                  </span>
+                  <QinoMark size={14} />
                 </div>
               )}
               <p className="text-[13.5px] leading-[1.5]" style={{ fontWeight: 400 }}>

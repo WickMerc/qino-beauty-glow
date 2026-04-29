@@ -299,18 +299,7 @@ export const OnboardingHeader = ({
       </button>
 
       <div className="flex items-center gap-2">
-        <QinoMark size={20} color={palette.midnight} />
-        <span
-          className="text-[12px]"
-          style={{
-            fontFamily: fonts.title,
-            fontWeight: 600,
-            letterSpacing: "0.18em",
-            color: palette.midnight,
-          }}
-        >
-          QINO
-        </span>
+        <QinoMark size={22} />
       </div>
 
       <button
