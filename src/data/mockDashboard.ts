@@ -97,7 +97,6 @@ export const preScanContent = {
   heroBody:
     "Your profile is ready. Finish your guided scan to unlock your facial priority map, 90-day protocol, product stack, and treatment pathways.",
   primaryCtaLabel: "Start guided scan",
-  secondaryCtaLabel: "Remind me later",
   unlocksHeading: "Unlocks after scan",
 };
 

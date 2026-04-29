@@ -18,7 +18,7 @@ import {
   QinoMark,
   resolveAccent,
 } from "../../components/primitives";
-import { TopBar, BottomNav } from "../../components/Chrome";
+import { TopBar } from "../../components/Chrome";
 import { getIcon } from "../../iconRegistry";
 
 interface PreScanDashboardProps {
@@ -28,10 +28,8 @@ interface PreScanDashboardProps {
   heroTitle: string;
   heroBody: string;
   primaryCtaLabel: string;
-  secondaryCtaLabel: string;
   unlocksHeading: string;
   onStartScan: () => void;
-  onRemindLater: () => void;
 }
 
 export const PreScanDashboard = ({
@@ -41,10 +39,8 @@ export const PreScanDashboard = ({
   heroTitle,
   heroBody,
   primaryCtaLabel,
-  secondaryCtaLabel,
   unlocksHeading,
   onStartScan,
-  onRemindLater,
 }: PreScanDashboardProps) => (
   <div
     className="min-h-screen w-full"
@@ -143,19 +139,6 @@ export const PreScanDashboard = ({
                   <ArrowRight size={14} strokeWidth={2} />
                 </span>
               </button>
-              <button
-                onClick={onRemindLater}
-                className="w-full py-3 rounded-full"
-                style={{
-                  background: "rgba(255,255,255,0.55)",
-                  fontFamily: fonts.subtitle,
-                  fontWeight: 500,
-                  color: palette.midnight,
-                  fontSize: 12.5,
-                }}
-              >
-                {secondaryCtaLabel}
-              </button>
             </div>
           </div>
         </div>
@@ -208,12 +191,5 @@ export const PreScanDashboard = ({
         </div>
       </div>
     </div>
-
-    {/* Locked nav: Today is the only active tab in pre-scan */}
-    <BottomNav
-      active="today"
-      onChange={() => {}}
-      lockedTabs={["analysis", "protocol", "progress"]}
-    />
   </div>
 );

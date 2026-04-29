@@ -86,7 +86,6 @@ export const PostOnboardingFlow = ({
           user={user}
           {...preScanContent}
           onStartScan={() => setStage("scan")}
-          onRemindLater={() => onComplete()}
         />
       )}
 

@@ -2,12 +2,11 @@
 // QINO — Dashboard
 // The live 5-tab app, shown after onboarding + scan + report are done.
 //
-// Iteration 4 additions:
-// - Coach screen wired to grounded responses + context card
-// - Progress screen wired to monthly photo upload flow
-// - Protocol screen has today's tasks
-//
-// All overlays still managed by useDashboardOverlays.
+// Iteration 5 additions:
+// - Subscription gating: free users see report + locked previews,
+//   paid/trial users get full daily system
+// - Coach, Protocol, Progress, Product Stack, Pathways all gated
+// - Analysis tab stays free (full report access)
 // =====================================================================
 
 import { useState } from "react";
@@ -36,6 +35,8 @@ import {
   DashboardOverlays,
 } from "./components/DashboardOverlays";
 import { MonthlyPhotoUpload } from "./components/MonthlyPhotoUpload";
+import { TrialOfferCard } from "./components/TrialOfferCard";
+import { useSubscription } from "./hooks/useSubscription";
 import { TodayScreen } from "./screens/TodayScreen";
 import { AnalysisScreen } from "./screens/AnalysisScreen";
 import { ProtocolScreen } from "./screens/ProtocolScreen";
@@ -60,6 +61,7 @@ export default function Dashboard() {
   const [tab, setTab] = useState<TabId>("today");
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const overlays = useDashboardOverlays();
+  const subscription = useSubscription("free");
 
   const productCount =
     data.productStack.essentials.length + data.productStack.targeted.length;
@@ -73,7 +75,14 @@ export default function Dashboard() {
     { id: "skin", label: "Skin close-up", uploaded: false, accentKey: "softBlush" },
   ];
 
-  // Monthly photo upload overlay takes precedence over tabs
+  // Gating helpers — used to swap real content for the trial offer
+  const startTrial = () => subscription.setStatus("trial");
+
+  // Tab access — only Today and Analysis fully free.
+  // Locked tabs show TrialOfferCard "screen" variant.
+  // Modal/upload features check `canAccess` before opening.
+
+  // Monthly photo upload overlay takes precedence over tabs (gated)
   if (uploadingPhotos) {
     return (
       <MonthlyPhotoUpload
@@ -87,6 +96,92 @@ export default function Dashboard() {
       />
     );
   }
+
+  // Gated tab content — replaces the real screen with the trial offer
+  const renderProtocol = () => {
+    if (subscription.isLocked("daily_protocol")) {
+      return (
+        <TrialOfferCard
+          variant="screen"
+          featureName="Daily Protocol"
+          onStartTrial={startTrial}
+        />
+      );
+    }
+    return (
+      <ProtocolScreen
+        protocol={data.protocol}
+        subtitle="Your daily system for visible improvement"
+        heroHeadline="Build the visible-change baseline"
+        heroSub="Facial softness · skin basics · grooming consistency"
+      />
+    );
+  };
+
+  const renderProgress = () => {
+    if (subscription.isLocked("progress_tracking")) {
+      return (
+        <TrialOfferCard
+          variant="screen"
+          featureName="Progress Tracking"
+          onStartTrial={startTrial}
+        />
+      );
+    }
+    return (
+      <ProgressScreen
+        progress={data.progress}
+        subtitle="Visible changes over time"
+        photoAngles={photoAngles.map(({ id, label, uploaded }) => ({ id, label, uploaded }))}
+        isEmpty={data.progress.photosUploaded === 0}
+        onStartUpload={() => setUploadingPhotos(true)}
+        nextCheckInEyebrow="Next check-in"
+        nextCheckInHeadline={`Day 30 photos · ${data.progress.nextReviewLabel}`}
+        nextCheckInSub="Same six angles, same lighting. Takes about three minutes."
+        uploadCtaLabel="Upload photos"
+      />
+    );
+  };
+
+  const renderCoach = () => {
+    if (subscription.isLocked("coach")) {
+      return (
+        <TrialOfferCard
+          variant="screen"
+          featureName="QINO Coach"
+          onStartTrial={startTrial}
+        />
+      );
+    }
+    return (
+      <CoachScreen
+        state={data.coach}
+        responses={coachResponses}
+        contextEyebrow={coachContext.eyebrow}
+        contextItems={coachContext.items}
+        safetyNote={QINO_SAFETY_NOTE}
+        fallbackReply={QINO_COACH_FALLBACK_REPLY}
+        subtitle="Grounded in your analysis, protocol, and goals."
+      />
+    );
+  };
+
+  // Today's gated quick actions: route through subscription
+  const handleOpenProducts = () => {
+    if (subscription.isLocked("product_stack")) {
+      // For prototype: just trigger trial state. Real version: show paywall sheet.
+      startTrial();
+      return;
+    }
+    overlays.openProducts();
+  };
+  const handleOpenPathways = () => {
+    if (subscription.isLocked("treatment_pathways")) {
+      startTrial();
+      return;
+    }
+    overlays.openPathways();
+  };
 
   return (
     <div
@@ -116,8 +211,8 @@ export default function Dashboard() {
             productCount={productCount}
             pathwaysSummary={reportContent.pathwaysSummary.replace("Open to: ", "")}
             onTab={setTab}
-            onOpenProducts={overlays.openProducts}
-            onOpenPathways={overlays.openPathways}
+            onOpenProducts={handleOpenProducts}
+            onOpenPathways={handleOpenPathways}
           />
         )}
 
@@ -129,40 +224,9 @@ export default function Dashboard() {
           />
         )}
 
-        {tab === "protocol" && (
-          <ProtocolScreen
-            protocol={data.protocol}
-            subtitle="Your daily system for visible improvement"
-            heroHeadline="Build the visible-change baseline"
-            heroSub="Facial softness · skin basics · grooming consistency"
-          />
-        )}
-
-        {tab === "progress" && (
-          <ProgressScreen
-            progress={data.progress}
-            subtitle="Visible changes over time"
-            photoAngles={photoAngles.map(({ id, label, uploaded }) => ({ id, label, uploaded }))}
-            isEmpty={data.progress.photosUploaded === 0}
-            onStartUpload={() => setUploadingPhotos(true)}
-            nextCheckInEyebrow="Next check-in"
-            nextCheckInHeadline={`Day 30 photos · ${data.progress.nextReviewLabel}`}
-            nextCheckInSub="Same six angles, same lighting. Takes about three minutes."
-            uploadCtaLabel="Upload photos"
-          />
-        )}
-
-        {tab === "coach" && (
-          <CoachScreen
-            state={data.coach}
-            responses={coachResponses}
-            contextEyebrow={coachContext.eyebrow}
-            contextItems={coachContext.items}
-            safetyNote={QINO_SAFETY_NOTE}
-            fallbackReply={QINO_COACH_FALLBACK_REPLY}
-            subtitle="Grounded in your analysis, protocol, and goals."
-          />
-        )}
+        {tab === "protocol" && renderProtocol()}
+        {tab === "progress" && renderProgress()}
+        {tab === "coach" && renderCoach()}
       </div>
 
       <BottomNav active={tab} onChange={setTab} />
