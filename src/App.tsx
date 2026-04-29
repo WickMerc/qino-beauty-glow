@@ -27,7 +27,7 @@ export default function App() {
   return (
     <div
       className="max-w-[440px] mx-auto min-h-screen pb-24"
-      style={{ background: palette.bg }}
+      style={{ background: palette.ivory }}
     >
       <TopBar user={mockUser} />
 
@@ -36,11 +36,11 @@ export default function App() {
           user={mockUser}
           protocol={mockProtocol}
           report={mockAnalysisReport}
-          todayFocusLine={mockTodayFocus}
+          todayFocusLine={mockTodayFocus.focusLine}
           comingUp={mockComingUp}
-          greetingPrefix={mockGreeting}
-          productCount={mockProductStack.products.length}
-          pathwaysSummary={`${mockTreatmentPathways.pathways.length} pathways`}
+          greetingPrefix={mockGreeting.morning}
+          productCount={mockProductStack.essentials.length + mockProductStack.targeted.length}
+          pathwaysSummary={`${mockTreatmentPathways.levels.length} pathways`}
           onTab={setTab}
           onOpenProducts={() => {}}
           onOpenPathways={() => {}}
