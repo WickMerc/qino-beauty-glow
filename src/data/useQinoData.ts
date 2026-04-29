@@ -1,17 +1,17 @@
 // =====================================================================
 // QINO — useQinoData hook
-// Replaces useMockData. Tries Supabase first, falls back to mock data
-// for anything that hasn't been wired to real backend yet.
+// Fetches user profile and latest analysis report from Supabase.
+// Falls back to mock data for anything that hasn't been wired yet.
 //
-// Iteration 6B scope:
-//   - profiles: real (with mock fallback)
+// Iteration 7B scope:
+//   - profile: real (with mock fallback)
+//   - report: real (with mock fallback if no complete report exists)
 //   - everything else: still mock for now
 //
-// Iteration 7 will swap analysis report from mock → real.
 // Iteration 8 will swap protocol/products/pathways/coach.
 // =====================================================================
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   mockUser,
   mockProtocol,
@@ -24,7 +24,8 @@ import {
   mockComingUp,
   mockGreeting,
 } from "./index";
-import { fetchProfile } from "./qinoApi";
+import { fetchProfile, fetchLatestAnalysisReport } from "./qinoApi";
+import { mapAnalysisReport } from "./mappers";
 import type {
   UserProfile,
   Protocol,
@@ -53,42 +54,65 @@ export interface QinoDataState {
   loading: boolean;
   /** True once any real Supabase fetch has completed (success or failure). */
   hasFetched: boolean;
+  /** True when the report came from the database (vs. mock fallback). */
+  reportIsReal: boolean;
+  /** Force a re-fetch — useful after scan completion. */
+  refresh: () => Promise<void>;
 }
 
 export const useQinoData = (): QinoDataState => {
   const [profile, setProfile] = useState<UserProfile>(mockUser);
+  const [report, setReport] = useState<AnalysisReport>(mockAnalysisReport);
+  const [reportIsReal, setReportIsReal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
+
+  const load = useCallback(async () => {
+    const [realProfile, realReport] = await Promise.all([
+      fetchProfile(),
+      fetchLatestAnalysisReport(),
+    ]);
+
+    if (realProfile) {
+      setProfile({
+        id: realProfile.user_id,
+        name: realProfile.name,
+        initial: realProfile.name.charAt(0).toUpperCase(),
+        email: realProfile.email ?? undefined,
+      });
+    }
+
+    if (realReport) {
+      setReport(
+        mapAnalysisReport(realReport.report, realReport.findings, realReport.priorities)
+      );
+      setReportIsReal(true);
+    } else {
+      // Keep mock report in state, mark as not-real
+      setReportIsReal(false);
+    }
+
+    setLoading(false);
+    setHasFetched(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const real = await fetchProfile();
+      await load();
       if (cancelled) return;
-      if (real) {
-        setProfile({
-          id: real.user_id,
-          name: real.name,
-          initial: real.name.charAt(0).toUpperCase(),
-          email: real.email ?? undefined,
-        });
-      }
-      // If real is null, we silently keep the mockUser — the prototype
-      // continues to work even if Supabase is unreachable.
-      setLoading(false);
-      setHasFetched(true);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [load]);
 
   return {
     data: {
       user: profile,
+      report,
       // Below: still mock until later iterations wire them.
       protocol: mockProtocol,
-      report: mockAnalysisReport,
       productStack: mockProductStack,
       pathways: mockTreatmentPathways,
       progress: mockProgress,
@@ -99,5 +123,7 @@ export const useQinoData = (): QinoDataState => {
     },
     loading,
     hasFetched,
+    reportIsReal,
+    refresh: load,
   };
 };

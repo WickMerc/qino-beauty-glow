@@ -1,13 +1,21 @@
 // =====================================================================
 // QINO — Processing Dashboard
-// Shown while analysis is being generated. Mock animation.
-// Phases come from /src/data/mockScan.ts → processingPhases.
+// Shown while analysis is being generated.
+//
+// Iteration 7B: polls the analysis_reports table for completion.
+// CTA only enables when BOTH:
+//   1. The phase animation has reached its final phase (premium feel)
+//   2. The database report status is "complete" (real data ready)
+//
+// If the report isn't ready when animation finishes, we show a
+// "Just a moment more" state instead of the CTA.
 // =====================================================================
 
 import { useState, useEffect } from "react";
 import { Check, ArrowRight } from "lucide-react";
 import type { UserProfile } from "../../types";
 import { mockScanState } from "../../data/mockScan";
+import { pollAnalysisStatus } from "../../data/qinoApi";
 import { palette, fonts, shadows } from "../../theme";
 import {
   Eyebrow,
@@ -15,21 +23,25 @@ import {
   QinoMark,
   resolveAccent,
 } from "../../components/primitives";
-import { TopBar, BottomNav } from "../../components/Chrome";
+import { TopBar } from "../../components/Chrome";
 
 interface ProcessingDashboardProps {
   user: UserProfile;
-  greetingTitleA: string;        // "Building your"
-  greetingTitleB: string;        // "QINO analysis"
+  greetingTitleA: string;
+  greetingTitleB: string;
   heroEyebrow: string;
-  heroHeadlineA: string;         // "Reading your face,"
-  heroHeadlineB: string;         // "building your plan."
+  heroHeadlineA: string;
+  heroHeadlineB: string;
   heroBody: string;
   ctaLabel: string;
-  /** Time in ms between phase auto-advances. Defaults to 1800 for a more deliberate feel. */
+  /** Time in ms between phase auto-advances. */
   phaseStepMs?: number;
+  /** Scan session being processed. If null, we treat as already complete (e.g. retry case). */
+  scanSessionId: string | null;
   onComplete: () => void;
 }
+
+type ReportStatus = "pending" | "complete" | "failed" | "timeout";
 
 export const ProcessingDashboard = ({
   user,
@@ -41,11 +53,16 @@ export const ProcessingDashboard = ({
   heroBody,
   ctaLabel,
   phaseStepMs = 1800,
+  scanSessionId,
   onComplete,
 }: ProcessingDashboardProps) => {
-  const [phase, setPhase] = useState(0);
   const phases = mockScanState.processingPhases;
+  const [phase, setPhase] = useState(0);
+  const [reportStatus, setReportStatus] = useState<ReportStatus>(
+    scanSessionId ? "pending" : "complete"
+  );
 
+  // Animation timer
   useEffect(() => {
     const interval = setInterval(() => {
       setPhase((p) => {
@@ -59,12 +76,35 @@ export const ProcessingDashboard = ({
     return () => clearInterval(interval);
   }, [phases.length, phaseStepMs]);
 
+  // Poll database for analysis completion
+  useEffect(() => {
+    if (!scanSessionId) return;
+    let cancelled = false;
+    (async () => {
+      const result = await pollAnalysisStatus(scanSessionId, {
+        intervalMs: 1500,
+        timeoutMs: 60_000,
+      });
+      if (cancelled) return;
+      setReportStatus(result === "complete" ? "complete" : result);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [scanSessionId]);
+
+  const animationDone = phase >= phases.length - 1;
+  const reportReady = reportStatus === "complete";
+  const canContinue = animationDone && reportReady;
+  const showWaitingMore = animationDone && !reportReady && reportStatus === "pending";
+  const showFailure = reportStatus === "failed" || reportStatus === "timeout";
+
   return (
     <div
       className="min-h-screen w-full"
       style={{ background: palette.ivory, fontFamily: fonts.body, color: palette.ink }}
     >
-      <div className="max-w-[440px] mx-auto pb-24">
+      <div className="max-w-[440px] mx-auto pb-12">
         <TopBar user={user} />
 
         <div className="px-5 pt-2 space-y-5">
@@ -95,18 +135,14 @@ export const ProcessingDashboard = ({
             }}
           >
             <div
-              className="absolute pointer-events-none"
-              style={{ top: 16, right: 16, opacity: 0.16 }}
-              aria-hidden
-            >
-              <QinoMark size={56} />
-            </div>
-            <div
               className="absolute top-0 right-12 bottom-0 w-px qino-axis-pulse"
               style={{
                 background: `linear-gradient(180deg, transparent, ${palette.midnight}, transparent)`,
               }}
             />
+            <div className="absolute -right-8 top-10 opacity-25 qino-mark-spin">
+              <QinoMark size={160} color={palette.midnight} />
+            </div>
 
             <div className="relative">
               <Eyebrow color={palette.textMuted}>{heroEyebrow}</Eyebrow>
@@ -216,7 +252,8 @@ export const ProcessingDashboard = ({
             })}
           </div>
 
-          {phase >= phases.length - 1 && (
+          {/* CTA states */}
+          {canContinue && (
             <button
               onClick={onComplete}
               className="w-full py-4 rounded-full transition-all active:scale-[0.99]"
@@ -234,14 +271,72 @@ export const ProcessingDashboard = ({
               </span>
             </button>
           )}
+
+          {showWaitingMore && (
+            <div
+              className="w-full py-4 rounded-full text-center"
+              style={{
+                background: palette.stone,
+                border: `1px solid ${palette.hairline}`,
+              }}
+            >
+              <span
+                className="text-[13px]"
+                style={{ fontFamily: fonts.subtitle, fontWeight: 500, color: palette.textMuted }}
+              >
+                Just a moment more...
+              </span>
+            </div>
+          )}
+
+          {showFailure && (
+            <div
+              className="rounded-[18px] p-4"
+              style={{
+                background: palette.softBlush,
+                border: `1px solid ${palette.hairline}`,
+              }}
+            >
+              <p
+                className="text-[13px]"
+                style={{
+                  fontFamily: fonts.subtitle,
+                  fontWeight: 600,
+                  color: palette.ink,
+                }}
+              >
+                {reportStatus === "timeout"
+                  ? "This is taking longer than expected"
+                  : "We hit a problem generating your report"}
+              </p>
+              <p
+                className="text-[12px] mt-1.5"
+                style={{
+                  fontFamily: fonts.body,
+                  fontWeight: 400,
+                  color: palette.textMuted,
+                }}
+              >
+                {reportStatus === "timeout"
+                  ? "Your scan is still processing in the background. You can return shortly."
+                  : "Please try submitting your scan again."}
+              </p>
+              <button
+                onClick={onComplete}
+                className="w-full mt-3 py-2.5 rounded-full text-[12px]"
+                style={{
+                  background: palette.midnight,
+                  fontFamily: fonts.subtitle,
+                  fontWeight: 600,
+                  color: palette.stone,
+                }}
+              >
+                Continue anyway
+              </button>
+            </div>
+          )}
         </div>
       </div>
-
-      <BottomNav
-        active="today"
-        onChange={() => {}}
-        lockedTabs={["analysis", "protocol", "progress", "coach"]}
-      />
     </div>
   );
 };
