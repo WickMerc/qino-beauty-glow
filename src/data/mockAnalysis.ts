@@ -15,6 +15,13 @@ export const mockAnalysisReport: AnalysisReport = {
   insight:
     "Your strongest gains will come from improving lower-face definition, skin consistency, and grooming frame before chasing advanced refinements.",
 
+  currentPhase: {
+    name: "Foundation Phase",
+    mainFocus: "Lower-face definition + skin clarity",
+    explanation:
+      "Your highest-impact path is improving facial softness, skin consistency, and grooming frame before moving into advanced refinements.",
+  },
+
   scores: [
     {
       id: "symmetry",
@@ -57,24 +64,31 @@ export const mockAnalysisReport: AnalysisReport = {
   strengths: [
     {
       id: "strength_1",
-      label: "Strong facial symmetry",
+      label: "High symmetry",
       sub: "Above population average",
       iconKey: "sparkles",
       accentKey: "softSage",
     },
     {
       id: "strength_2",
-      label: "Defined nose bridge",
-      sub: "Reads as a focal asset",
+      label: "Strong facial structure",
+      sub: "Defined nose bridge reads as a focal asset",
       iconKey: "activity",
       accentKey: "paleBlue",
     },
     {
       id: "strength_3",
-      label: "Clear undertone",
-      sub: "Olive, even base color",
-      iconKey: "sun",
+      label: "Good proportions",
+      sub: "Balanced thirds across face",
+      iconKey: "layers",
       accentKey: "softPeach",
+    },
+    {
+      id: "strength_4",
+      label: "Strong hair / frame potential",
+      sub: "Density and hairline in your favor",
+      iconKey: "scissors",
+      accentKey: "softLavender",
     },
   ],
 
@@ -89,7 +103,7 @@ export const mockAnalysisReport: AnalysisReport = {
     },
     {
       id: "opp_2",
-      label: "Skin texture & evenness",
+      label: "Skin evenness / texture",
       sub: "Daily protocol leverage",
       impact: "high",
       iconKey: "droplet",
@@ -97,11 +111,19 @@ export const mockAnalysisReport: AnalysisReport = {
     },
     {
       id: "opp_3",
-      label: "Grooming & frame",
+      label: "Grooming frame",
       sub: "Hair shape, brow cleanup",
       impact: "medium",
       iconKey: "scissors",
       accentKey: "softLavender",
+    },
+    {
+      id: "opp_4",
+      label: "Smile brightness",
+      sub: "Polish the lower-face frame",
+      impact: "medium",
+      iconKey: "heart",
+      accentKey: "softBlush",
     },
   ],
 
@@ -123,6 +145,19 @@ export const mockAnalysisReport: AnalysisReport = {
         { key: "proportions", label: "Proportions", value: "High" },
         { key: "averageness", label: "Averageness", value: "Above Average" },
       ],
+      detail: {
+        whyItMatters:
+          "Facial structure sets the baseline of how every other feature reads. Your structure is already strong — the work here is preserving it through good skin and grooming, not changing it.",
+        atHomeActions: [
+          "Maintain consistent sleep position to preserve symmetry",
+          "Hydration to reduce day-to-day puffiness",
+          "Protect skin to maintain how structure appears over time",
+          "Avoid aggressive treatments that don't add value here",
+        ],
+        productCategories: ["spf", "moisturizer"],
+        treatmentRelevance: null,
+        priorityLevel: "low",
+      },
     },
     {
       id: "jaw_chin_neck",
@@ -135,6 +170,21 @@ export const mockAnalysisReport: AnalysisReport = {
         { key: "neck_definition", label: "Neck definition", value: "Slightly Defined" },
         { key: "submental_softness", label: "Submental softness", value: "Mild" },
       ],
+      detail: {
+        whyItMatters:
+          "Lower-face softness is the single highest-impact area for your face. Defining the jaw and submental area will visibly sharpen your overall presentation.",
+        atHomeActions: [
+          "Reduce facial softness through body composition awareness",
+          "Hydration and sodium awareness to limit puffiness",
+          "Sleep on back when possible to reduce morning swelling",
+          "Posture work — chin tucks and neck alignment",
+          "Limit late-night high-sodium meals",
+        ],
+        productCategories: ["moisturizer", "barrier"],
+        treatmentRelevance:
+          "If non-surgical paths plateau, jawline contouring options may be worth discussing with a qualified professional.",
+        priorityLevel: "high",
+      },
     },
     {
       id: "skin",
@@ -148,6 +198,21 @@ export const mockAnalysisReport: AnalysisReport = {
         { key: "texture", label: "Texture", value: "Slightly Textured" },
         { key: "oiliness", label: "Oiliness", value: "Low" },
       ],
+      detail: {
+        whyItMatters:
+          "Skin is the canvas every other feature is read against. Slightly uneven and slightly textured skin is the easiest high-leverage win in your protocol.",
+        atHomeActions: [
+          "Daily SPF — single highest-leverage step",
+          "Gentle non-stripping cleanse morning and night",
+          "Hydrating moisturizer to support barrier",
+          "Slow introduction of texture serum after week two",
+          "Avoid over-exfoliation — barrier first",
+        ],
+        productCategories: ["cleanser", "moisturizer", "spf", "texture_serum", "barrier"],
+        treatmentRelevance:
+          "Chemical peels or microneedling may be worth discussing with a qualified professional once your home routine is consistent.",
+        priorityLevel: "high",
+      },
     },
     {
       id: "hair_frame",
@@ -160,6 +225,19 @@ export const mockAnalysisReport: AnalysisReport = {
         { key: "hair_volume", label: "Hair volume", value: "Medium" },
         { key: "brows", label: "Brows", value: "Arched / Moderate" },
       ],
+      detail: {
+        whyItMatters:
+          "Hair and brow framing shape the entire upper face. Small grooming adjustments often produce the most visible week-one improvement.",
+        atHomeActions: [
+          "Consider a sharper hairstyle that complements face shape",
+          "Light brow cleanup — shape, not removal",
+          "Use volume-supporting hair product for daily styling",
+          "Trim regularly to maintain shape, not length",
+        ],
+        productCategories: ["hair", "grooming"],
+        treatmentRelevance: null,
+        priorityLevel: "medium",
+      },
     },
     {
       id: "eyes_nose_lips",
@@ -172,6 +250,20 @@ export const mockAnalysisReport: AnalysisReport = {
         { key: "lips", label: "Lips", value: "Full / Slightly top-heavy" },
         { key: "smile", label: "Smile", value: "Full teeth exposure" },
       ],
+      detail: {
+        whyItMatters:
+          "These are focal features. Your nose and eyes already read well. The leverage here is in lip care, smile polish, and managing under-eye health.",
+        atHomeActions: [
+          "Daily lip repair to support smile presentation",
+          "Sleep consistency to reduce under-eye darkness",
+          "Hydration to soften under-eye shadows",
+          "Whitening toothpaste over time for smile polish",
+        ],
+        productCategories: ["lip", "oral"],
+        treatmentRelevance:
+          "Teeth whitening consultation may be worth discussing with a qualified professional.",
+        priorityLevel: "medium",
+      },
     },
   ],
 };

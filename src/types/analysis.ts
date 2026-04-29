@@ -23,12 +23,33 @@ export interface FeatureFinding {
   value: string;               // "Oval"
 }
 
+export interface CurrentPhaseSummary {
+  name: string;                // "Foundation Phase"
+  mainFocus: string;           // "Lower-face definition + skin clarity"
+  explanation: string;         // longer paragraph
+}
+
+export interface FeatureGroupDetail {
+  /** Why this group matters to the user's overall facial impression. */
+  whyItMatters: string;
+  /** Practical at-home improvement approach (3–5 bullets). */
+  atHomeActions: string[];
+  /** Which product categories from their stack apply (ids match ProductCategory). */
+  productCategories: string[];
+  /** Treatment pathway relevance, if any (uses safe language). */
+  treatmentRelevance: string | null;
+  /** Priority tier shown as a chip on the detail screen. */
+  priorityLevel: "high" | "medium" | "low";
+}
+
 export interface FeatureGroup {
   id: string;                  // e.g. "facial_structure"
   title: string;
   iconKey: string;             // string so data is icon-library-agnostic
   accentKey: string;           // palette key, mapped in component
   findings: FeatureFinding[];
+  /** Extended detail used by the per-group detail screen. */
+  detail: FeatureGroupDetail;
 }
 
 export interface PriorityMap {
@@ -52,6 +73,9 @@ export interface AnalysisReport {
   generatedAt: string;          // ISO
   headline: string;             // "Lower-face definition is priority #1"
   insight: string;              // short paragraph
+
+  /** Phase summary shown at the top of the report. */
+  currentPhase: CurrentPhaseSummary;
 
   scores: ScoreDimension[];
   strengths: StrengthOrOpportunity[];
