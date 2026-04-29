@@ -26,7 +26,7 @@ interface ProcessingDashboardProps {
   heroHeadlineB: string;         // "building your plan."
   heroBody: string;
   ctaLabel: string;
-  /** Time in ms between phase auto-advances. Defaults to 1000. */
+  /** Time in ms between phase auto-advances. Defaults to 1800 for a more deliberate feel. */
   phaseStepMs?: number;
   onComplete: () => void;
 }
@@ -40,7 +40,7 @@ export const ProcessingDashboard = ({
   heroHeadlineB,
   heroBody,
   ctaLabel,
-  phaseStepMs = 1000,
+  phaseStepMs = 1800,
   onComplete,
 }: ProcessingDashboardProps) => {
   const [phase, setPhase] = useState(0);

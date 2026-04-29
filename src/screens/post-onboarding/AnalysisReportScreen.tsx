@@ -170,6 +170,48 @@ export const AnalysisReportScreen = ({
             </div>
           </div>
 
+          {/* Current phase block */}
+          <div>
+            <SectionHeading>Your starting point</SectionHeading>
+            <Card padding="p-5" radius="rounded-[22px]" bg={palette.softSage}>
+              <Eyebrow color={palette.textMuted}>Current Phase</Eyebrow>
+              <h3
+                className="mt-2 text-[18px]"
+                style={{
+                  fontFamily: fonts.title,
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  color: palette.ink,
+                }}
+              >
+                {report.currentPhase.name}
+              </h3>
+              <p
+                className="mt-3 text-[10.5px] uppercase"
+                style={{
+                  fontFamily: fonts.subtitle,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  color: palette.textMuted,
+                }}
+              >
+                Main Focus
+              </p>
+              <p
+                className="mt-1 text-[14px]"
+                style={{ fontFamily: fonts.subtitle, fontWeight: 600, color: palette.ink }}
+              >
+                {report.currentPhase.mainFocus}
+              </p>
+              <p
+                className="mt-3 text-[12.5px] leading-relaxed"
+                style={{ fontFamily: fonts.body, fontWeight: 400, color: palette.textMuted }}
+              >
+                {report.currentPhase.explanation}
+              </p>
+            </Card>
+          </div>
+
           {/* Scores 2x2 */}
           <div>
             <SectionHeading>Score overview</SectionHeading>
