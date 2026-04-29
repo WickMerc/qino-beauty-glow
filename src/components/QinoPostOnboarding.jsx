@@ -6,6 +6,7 @@ import {
   Activity, Droplet, Scissors, Eye, Lightbulb,
   Stethoscope, ArrowUpRight, Minus,
 } from "lucide-react";
+import QinoApp from "../App";
 
 /* =========================================================
    QINO — Post-onboarding states + Mock Report
@@ -1646,13 +1647,7 @@ export default function QinoPostOnboarding({ initialState = "prescan", onTabNavi
           onCardClick={handleCardClick}
         />
       )}
-      {state === "complete" && (
-        <CompleteDashboard
-          onTab={onTabNavigate}
-          onOpenProducts={() => alert("Open Product Stack modal (wire to QinoApp)")}
-          onOpenPathways={() => alert("Open Pathways modal (wire to QinoApp)")}
-        />
-      )}
+      {state === "complete" && <QinoApp />}
     </div>
   );
 }
