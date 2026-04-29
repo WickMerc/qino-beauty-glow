@@ -95,7 +95,7 @@ export const GuidedScan = ({
           <X size={15} color={palette.midnight} strokeWidth={1.8} />
         </button>
         <div className="flex items-center gap-2">
-          <QinoMark size={20} color={palette.midnight} />
+          <QinoMark size={88} color={palette.midnight} />
           <span
             className="text-[12px]"
             style={{
@@ -105,7 +105,7 @@ export const GuidedScan = ({
               color: palette.midnight,
             }}
           >
-            QINO SCAN
+            SCAN
           </span>
         </div>
         <div style={{ width: 36 }} />
