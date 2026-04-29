@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-// @ts-expect-error - JSX component without types
-import QinoOnboarding from "@/components/QinoOnboarding";
-
-function Home() {
-  return <QinoOnboarding onComplete={(data: unknown) => console.log("Onboarding done:", data)} />;
-}
+import App from "@/App";
 
 export const Route = createFileRoute("/")({
-  component: Home,
+  component: App,
 });
