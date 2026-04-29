@@ -1,86 +1,71 @@
-import { useState } from "react";
-import { TopBar, BottomNav, type TabId } from "./components/Chrome";
-import { TodayScreen } from "./screens/TodayScreen";
-import { AnalysisScreen } from "./screens/AnalysisScreen";
-import { ProtocolScreen } from "./screens/ProtocolScreen";
-import { ProgressScreen } from "./screens/ProgressScreen";
-import { CoachScreen } from "./screens/CoachScreen";
-import {
-  mockUser,
-  mockProtocol,
-  mockAnalysisReport,
-  mockProgress,
-  mockCoachState,
-  mockProductStack,
-  mockTreatmentPathways,
-  mockTodayFocus,
-  mockComingUp,
-  mockGreeting,
-  QINO_COACH_FALLBACK_REPLY,
-  QINO_SAFETY_NOTE,
-} from "./data";
-import { palette } from "./theme";
+// =====================================================================
+// QINO — Top-level App
+// Orchestrates the full user journey:
+//   onboarding → post-onboarding (pre-scan / scan / processing / report) → dashboard
+//
+// State machine is local for now. Backend replacement point:
+//   Replace `useState<AppStage>` with a hook that derives stage from
+//   user.onboardingCompleted, scan_session.status, and analysis_reports.
+// =====================================================================
 
-export default function App({ initialTab = "today" as TabId }: { initialTab?: TabId } = {}) {
-  const [tab, setTab] = useState<TabId>(initialTab);
+import { useState } from "react";
+import type { AppStage } from "./types";
+import { mockUser } from "./data";
+import { palette, fonts } from "./theme";
+
+import { OnboardingFlow } from "./screens/onboarding/OnboardingFlow";
+import { PostOnboardingFlow, type PostOnboardingStage } from "./screens/post-onboarding/PostOnboardingFlow";
+import Dashboard from "./Dashboard";
+
+/**
+ * Used to decide which post-onboarding stage to start in:
+ *  - "scan"      → user clicked "Start scan now" at end of onboarding
+ *  - "prescan"   → user clicked "Go to dashboard" (defer scan)
+ *  - "complete"  → already done (e.g. returning user)
+ */
+type EntryStage = Extract<PostOnboardingStage, "scan" | "prescan" | "complete">;
+
+export default function App() {
+  // Top-level stage of the journey. In real backend this comes from the user record.
+  const [stage, setStage] = useState<AppStage>("onboarding");
+  const [postEntryStage, setPostEntryStage] = useState<EntryStage>("prescan");
 
   return (
     <div
-      className="max-w-[440px] mx-auto min-h-screen pb-24"
-      style={{ background: palette.ivory }}
+      className="min-h-screen w-full"
+      style={{ background: palette.ivory, fontFamily: fonts.body, color: palette.ink }}
     >
-      <TopBar user={mockUser} />
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        body { -webkit-font-smoothing: antialiased; background: ${palette.ivory}; }
+      `}</style>
 
-      {tab === "today" && (
-        <TodayScreen
+      {stage === "onboarding" && (
+        <OnboardingFlow
+          onClose={() => {
+            // User dismissed onboarding mid-flow → drop them on dashboard for now.
+            // Real implementation: persist progress, show "Resume onboarding" CTA.
+            setStage("complete");
+          }}
+          onComplete={(result) => {
+            setPostEntryStage(result.startScan ? "scan" : "prescan");
+            setStage("prescan");
+          }}
+        />
+      )}
+
+      {(stage === "prescan" ||
+        stage === "scanning" ||
+        stage === "processing" ||
+        stage === "report") && (
+        <PostOnboardingFlow
           user={mockUser}
-          protocol={mockProtocol}
-          report={mockAnalysisReport}
-          todayFocusLine={mockTodayFocus.focusLine}
-          comingUp={mockComingUp}
-          greetingPrefix={mockGreeting.morning}
-          productCount={mockProductStack.essentials.length + mockProductStack.targeted.length}
-          pathwaysSummary={`${mockTreatmentPathways.levels.length} pathways`}
-          onTab={setTab}
-          onOpenProducts={() => {}}
-          onOpenPathways={() => {}}
-        />
-      )}
-      {tab === "analysis" && (
-        <AnalysisScreen
-          report={mockAnalysisReport}
-          subtitle="Your full facial breakdown"
-        />
-      )}
-      {tab === "protocol" && (
-        <ProtocolScreen
-          protocol={mockProtocol}
-          subtitle="Your daily system"
-          heroHeadline="Foundation Phase"
-          heroSub="Build the base for visible change."
-        />
-      )}
-      {tab === "progress" && (
-        <ProgressScreen
-          progress={mockProgress}
-          subtitle="Your transformation over time"
-          photoAngles={[
-            { id: "front", label: "Front", uploaded: true },
-            { id: "left", label: "Left", uploaded: true },
-            { id: "right", label: "Right", uploaded: false },
-          ]}
-        />
-      )}
-      {tab === "coach" && (
-        <CoachScreen
-          state={mockCoachState}
-          safetyNote={QINO_SAFETY_NOTE}
-          fallbackReply={QINO_COACH_FALLBACK_REPLY}
-          subtitle="Ask QINO anything about your protocol"
+          initialStage={postEntryStage}
+          onComplete={() => setStage("complete")}
         />
       )}
 
-      <BottomNav active={tab} onChange={setTab} />
+      {stage === "complete" && <Dashboard />}
     </div>
   );
 }

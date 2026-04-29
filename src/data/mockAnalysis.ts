@@ -57,31 +57,24 @@ export const mockAnalysisReport: AnalysisReport = {
   strengths: [
     {
       id: "strength_1",
-      label: "High symmetry",
+      label: "Strong facial symmetry",
       sub: "Above population average",
       iconKey: "sparkles",
       accentKey: "softSage",
     },
     {
       id: "strength_2",
-      label: "Strong facial structure",
-      sub: "Defined bone foundation",
+      label: "Defined nose bridge",
+      sub: "Reads as a focal asset",
       iconKey: "activity",
       accentKey: "paleBlue",
     },
     {
       id: "strength_3",
-      label: "Good proportions",
-      sub: "Balanced thirds & fifths",
+      label: "Clear undertone",
+      sub: "Olive, even base color",
       iconKey: "sun",
       accentKey: "softPeach",
-    },
-    {
-      id: "strength_4",
-      label: "Strong hair / frame potential",
-      sub: "Density and shape work in your favor",
-      iconKey: "scissors",
-      accentKey: "softLavender",
     },
   ],
 
@@ -96,7 +89,7 @@ export const mockAnalysisReport: AnalysisReport = {
     },
     {
       id: "opp_2",
-      label: "Skin evenness & texture",
+      label: "Skin texture & evenness",
       sub: "Daily protocol leverage",
       impact: "high",
       iconKey: "droplet",
@@ -104,19 +97,11 @@ export const mockAnalysisReport: AnalysisReport = {
     },
     {
       id: "opp_3",
-      label: "Grooming frame",
+      label: "Grooming & frame",
       sub: "Hair shape, brow cleanup",
       impact: "medium",
       iconKey: "scissors",
       accentKey: "softLavender",
-    },
-    {
-      id: "opp_4",
-      label: "Smile brightness",
-      sub: "Polish the lower-face frame",
-      impact: "medium",
-      iconKey: "sparkles",
-      accentKey: "paleBlue",
     },
   ],
 
@@ -187,87 +172,6 @@ export const mockAnalysisReport: AnalysisReport = {
         { key: "lips", label: "Lips", value: "Full / Slightly top-heavy" },
         { key: "smile", label: "Smile", value: "Full teeth exposure" },
       ],
-    },
-  ],
-
-  currentPhase: {
-    name: "Foundation Phase",
-    mainFocus: "Lower-face definition + skin clarity",
-    explanation:
-      "Your highest-impact path is improving facial softness, skin consistency, and grooming frame before moving into advanced refinements.",
-  },
-
-  productStackPreview: {
-    essentials: [
-      { id: "p_cleanser", name: "Gentle cleanser", categoryLabel: "Cleanser", bucketLabel: "Essential" },
-      { id: "p_moisturizer", name: "Hydrating moisturizer", categoryLabel: "Moisturizer", bucketLabel: "Essential" },
-      { id: "p_spf", name: "SPF 50", categoryLabel: "SPF", bucketLabel: "Essential" },
-    ],
-    targeted: [
-      { id: "p_texture", name: "Texture serum", categoryLabel: "Texture", bucketLabel: "Targeted" },
-      { id: "p_barrier", name: "Barrier support", categoryLabel: "Barrier", bucketLabel: "Targeted" },
-    ],
-    optional: [
-      { id: "p_exfoliant", name: "Optional exfoliant", categoryLabel: "Exfoliant", bucketLabel: "Optional" },
-    ],
-    totalCount: 6,
-  },
-
-  pathwaysPreview: {
-    comfortSummary: "Open to: Products + Clinics",
-    levels: [
-      {
-        number: 1,
-        title: "At-home",
-        language: "Educational guidance only",
-        locked: false,
-        accentKey: "softSage",
-      },
-      {
-        number: 2,
-        title: "Products",
-        language: "Potential pathway",
-        locked: false,
-        accentKey: "paleBlue",
-      },
-      {
-        number: 3,
-        title: "Clinic consult",
-        language: "Worth discussing with a qualified professional",
-        locked: false,
-        accentKey: "softLavender",
-      },
-      {
-        number: 4,
-        title: "Injectables / Surgery",
-        language: "Worth discussing with a qualified professional",
-        locked: true,
-        accentKey: "softBlush",
-      },
-    ],
-  },
-
-  protocolPreview: [
-    {
-      number: 1,
-      name: "Foundation",
-      dayRange: "Days 1–30",
-      state: "active",
-      focus: "Skin basics, grooming, body composition",
-    },
-    {
-      number: 2,
-      name: "Refinement",
-      dayRange: "Days 31–60",
-      state: "locked",
-      focus: "Targeted skin, frame work, consistency",
-    },
-    {
-      number: 3,
-      name: "Optimization",
-      dayRange: "Days 61–90",
-      state: "locked",
-      focus: "Polish, advanced steps, re-analysis",
     },
   ],
 };
