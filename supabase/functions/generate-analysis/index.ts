@@ -243,79 +243,7 @@ function buildBaseReport(): ReportContent {
   };
 }
 
-// ---------- Parameterization ----------
-function applyParameterization(
-  report: ReportContent,
-  answers: OnboardingAnswers,
-): ReportContent {
-  const goals = Array.isArray(answers.goals) ? answers.goals : [];
-  const skin = Array.isArray(answers.skin) ? answers.skin : [];
-  const comfort = Array.isArray(answers.comfort) ? answers.comfort : [];
-  const gender = answers.personalization?.gender;
 
-  // Rule A — Skin-led goal
-  if (goals.includes("skin") && !goals.includes("jawline")) {
-    report.headline = "Skin clarity is priority #1";
-    report.insight =
-      "Your strongest gains will come from improving skin consistency, then refining lower-face definition and grooming frame.";
-    report.current_phase.mainFocus = "Skin clarity + texture";
-    report.priorities.high = ["Skin evenness", "Lower-face definition", "Hair framing"];
-    // Swap opp_1 and opp_2
-    const opps = report.opportunities;
-    if (opps.length >= 2) {
-      [opps[0], opps[1]] = [opps[1], opps[0]];
-    }
-  }
-
-  // Rule B — Acne in skin concerns
-  if (skin.includes("acne")) {
-    report.opportunities.push({
-      id: "opp_5",
-      label: "Active blemish management",
-      sub: "Targeted, gentle, no over-treatment",
-      impact: "medium",
-      iconKey: "droplet",
-      accentKey: "softBlush",
-    });
-    const skinGroup = report.feature_groups.find((g) => g.group_id === "skin");
-    if (skinGroup) {
-      const blem = skinGroup.findings.find((f) => f.key === "blemishing");
-      if (blem) blem.value = "Active";
-    }
-  }
-
-  // Rule C — No clinic comfort
-  const hasClinicComfort =
-    comfort.includes("clinics") ||
-    comfort.includes("injectables") ||
-    comfort.includes("surgery");
-  if (!hasClinicComfort) {
-    for (const g of report.feature_groups) {
-      g.detail.treatmentRelevance = null;
-    }
-  }
-
-  // Rule D — Female personalization
-  if (gender === "female") {
-    const hairGroup = report.feature_groups.find((g) => g.group_id === "hair_frame");
-    if (hairGroup) {
-      hairGroup.findings = [
-        { key: "hairline", label: "Hairline", value: "Soft" },
-        { key: "hair_density", label: "Hair density", value: "Medium" },
-        { key: "hair_volume", label: "Hair volume", value: "Medium" },
-        { key: "framing", label: "Face framing", value: "Could be sharpened" },
-      ];
-      hairGroup.detail.atHomeActions = [
-        "Consider face-framing layers or a longer fringe",
-        "Light brow cleanup — shape, not removal",
-        "Use volume-supporting product",
-        "Trim regularly to maintain shape, not length",
-      ];
-    }
-  }
-
-  return report;
-}
 
 // ---------- Handler ----------
 Deno.serve(async (req: Request) => {
