@@ -1520,10 +1520,27 @@ export const CompleteDashboard = ({ onTab, onOpenProducts, onOpenPathways, repor
    ========================================================= */
 export default function QinoPostOnboarding({ initialState = "prescan", onTabNavigate }) {
   const [state, setState] = useState(initialState);
+  const [pendingTab, setPendingTab] = useState(null);
 
   // Mock log of clicked report cards (visible in browser console)
   const handleCardClick = (cardId) => {
     console.log("[QINO Report] Card clicked:", cardId);
+  };
+
+  // Report → Product Stack: open mock modal (logged for now)
+  const handleOpenProducts = () => {
+    console.log("[QINO Report] Open Product Stack modal");
+    alert("Product Stack modal (mock)");
+  };
+  // Report → Pathways: open mock modal (logged for now)
+  const handleOpenPathways = () => {
+    console.log("[QINO Report] Open Pathways modal");
+    alert("Treatment Pathways modal (mock)");
+  };
+  // Report → Protocol: jump to complete dashboard, land on Protocol tab
+  const handleNavigateProtocol = () => {
+    setPendingTab("protocol");
+    setState("complete");
   };
 
   return (
