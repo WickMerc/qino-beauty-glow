@@ -80,23 +80,23 @@ export const fetchOnboardingAnswers = async (): Promise<OnboardingAnswers | null
   }
   // Cast JSONB → typed answers. Real schema validation lands later.
   return {
-    goals: (data.goals as OnboardingAnswers["goals"]) ?? [],
+    goals: (data.goals as unknown as OnboardingAnswers["goals"]) ?? [],
     personalization:
-      (data.personalization as OnboardingAnswers["personalization"]) ?? {
+      (data.personalization as unknown as OnboardingAnswers["personalization"]) ?? {
         gender: null,
         direction: null,
       },
-    comfort: (data.comfort as OnboardingAnswers["comfort"]) ?? [],
+    comfort: (data.comfort as unknown as OnboardingAnswers["comfort"]) ?? [],
     budget: data.budget as OnboardingAnswers["budget"],
     routine: data.routine as OnboardingAnswers["routine"],
-    body: (data.body as OnboardingAnswers["body"]) ?? {
+    body: (data.body as unknown as OnboardingAnswers["body"]) ?? {
       height: 178,
       weight: 78,
       target: 75,
       composition: null,
     },
-    skin: (data.skin as OnboardingAnswers["skin"]) ?? [],
-    hair: (data.hair as OnboardingAnswers["hair"]) ?? {
+    skin: (data.skin as unknown as OnboardingAnswers["skin"]) ?? [],
+    hair: (data.hair as unknown as OnboardingAnswers["hair"]) ?? {
       hairline: null,
       density: null,
       styleGoal: "",
