@@ -29,18 +29,6 @@ type Json =
   | { [k: string]: Json }
   | Json[];
 
-interface OnboardingAnswers {
-  user_id: string;
-  goals: string[];
-  personalization: { gender?: string; direction?: string } & Record<string, Json>;
-  comfort: string[];
-  skin: string[];
-  hair: Record<string, Json>;
-  body: Record<string, Json> | null;
-  budget: string | null;
-  routine: string | null;
-}
-
 interface FindingItem {
   key: string;
   label: string;
