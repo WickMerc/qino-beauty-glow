@@ -121,6 +121,13 @@ export const TrialOfferCard = ({
           boxShadow: shadows.hero,
         }}
       >
+        <div
+          className="absolute pointer-events-none"
+          style={{ top: 18, right: 18, opacity: 0.16 }}
+          aria-hidden
+        >
+          <QinoMark size={60} />
+        </div>
         <div className="relative">
           <div
             className="w-12 h-12 rounded-[14px] flex items-center justify-center mb-4"
