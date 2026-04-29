@@ -1,12 +1,20 @@
 // =====================================================================
 // QINO — Protocol Screen
 // Props-driven. Consumes Protocol.
+// Adds: "Today's tasks" section with checkable items, tappable modules.
 // =====================================================================
 
-import { ChevronRight, Lock, Minus } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight, Lock, Minus, Check } from "lucide-react";
 import type { Protocol } from "../types";
 import { palette, fonts, shadows } from "../theme";
-import { Eyebrow, SectionHeading, Card, ProgressBar, resolveAccent } from "../components/primitives";
+import {
+  Eyebrow,
+  SectionHeading,
+  Card,
+  ProgressBar,
+  resolveAccent,
+} from "../components/primitives";
 import { getIcon } from "../iconRegistry";
 
 interface ProtocolScreenProps {
@@ -24,6 +32,25 @@ export const ProtocolScreen = ({
   heroSub,
   onModuleClick,
 }: ProtocolScreenProps) => {
+  // Local task completion state for today's tasks.
+  // Real version: PATCH /api/me/protocol/tasks/:id { completed: boolean }
+  const [taskState, setTaskState] = useState(() => {
+    const initial: Record<string, boolean> = {};
+    protocol.routines.forEach((r) =>
+      r.tasks.forEach((t) => {
+        initial[t.id] = t.completed;
+      })
+    );
+    return initial;
+  });
+
+  const toggleTask = (id: string) =>
+    setTaskState((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const totalTasks = Object.keys(taskState).length;
+  const completedTasks = Object.values(taskState).filter(Boolean).length;
+  const todayPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   return (
     <div className="px-5 space-y-5 pb-8">
       <div className="pt-1">
@@ -95,6 +122,105 @@ export const ProtocolScreen = ({
             </span>
           </div>
           <ProgressBar value={protocol.percentComplete} height={4} />
+        </div>
+      </div>
+
+      {/* Today's tasks */}
+      <div>
+        <div className="flex items-center justify-between px-1 mb-3">
+          <h3
+            className="text-[16px]"
+            style={{
+              fontFamily: fonts.subtitle,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              color: palette.ink,
+            }}
+          >
+            Today's tasks
+          </h3>
+          <span
+            className="text-[12px]"
+            style={{ fontFamily: fonts.body, fontWeight: 600, color: palette.textMuted }}
+          >
+            {completedTasks} / {totalTasks} · {todayPercent}%
+          </span>
+        </div>
+
+        <div className="space-y-2.5">
+          {protocol.routines.map((routine) => {
+            const Icon = getIcon(routine.iconKey);
+            const accent = resolveAccent(routine.bgAccentKey);
+            return (
+              <Card key={routine.id} padding="p-4" radius="rounded-[20px]">
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
+                    style={{ background: accent }}
+                  >
+                    <Icon size={15} strokeWidth={1.6} color={palette.midnight} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[13.5px]"
+                      style={{ fontFamily: fonts.subtitle, fontWeight: 600, color: palette.ink }}
+                    >
+                      {routine.label}
+                    </p>
+                    <p
+                      className="text-[11px] mt-0.5"
+                      style={{
+                        fontFamily: fonts.body,
+                        fontWeight: 400,
+                        color: palette.textMuted,
+                      }}
+                    >
+                      {routine.sub}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  {routine.tasks.map((task, i, arr) => {
+                    const done = !!taskState[task.id];
+                    return (
+                      <button
+                        key={task.id}
+                        onClick={() => toggleTask(task.id)}
+                        className="w-full flex items-center gap-3 py-2 active:opacity-60 transition-opacity"
+                        style={{
+                          borderTop: i === 0 ? `1px solid ${palette.hairline}` : "none",
+                          borderBottom:
+                            i !== arr.length - 1 ? `1px solid ${palette.hairline}` : "none",
+                        }}
+                      >
+                        <div
+                          className="w-5 h-5 rounded-[6px] flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: done ? palette.midnight : "transparent",
+                            border: done ? "none" : `1.5px solid ${palette.hairlineMid}`,
+                          }}
+                        >
+                          {done && <Check size={11} color={palette.stone} strokeWidth={2.8} />}
+                        </div>
+                        <span
+                          className="flex-1 text-left text-[12.5px]"
+                          style={{
+                            fontFamily: fonts.body,
+                            fontWeight: 500,
+                            color: done ? palette.textMuted : palette.ink,
+                            textDecoration: done ? "line-through" : "none",
+                          }}
+                        >
+                          {task.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       </div>
 

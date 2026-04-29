@@ -1,33 +1,73 @@
 // =====================================================================
 // QINO — Progress Screen
 // Props-driven. Consumes ProgressState.
+// Adds: "Next check-in" card, empty state, upload CTA.
 // =====================================================================
 
-import { useState } from "react";
-import { Camera, Check, ArrowRight } from "lucide-react";
+import { Camera, Check, ArrowRight, Calendar } from "lucide-react";
 import type { ProgressState } from "../types";
 import { palette, fonts, shadows } from "../theme";
-import { Eyebrow, SectionHeading, Card, Pill, resolveAccent } from "../components/primitives";
-import { getIcon } from "../iconRegistry";
+import {
+  Eyebrow,
+  SectionHeading,
+  Card,
+  Pill,
+  resolveAccent,
+} from "../components/primitives";
 
 interface ProgressScreenProps {
   progress: ProgressState;
   subtitle: string;
   photoAngles: { id: string; label: string; uploaded: boolean }[];
+  /** True when the user has zero progress photos uploaded. */
+  isEmpty: boolean;
+  /** Triggered by the "Upload" CTA — opens the monthly photo upload flow. */
+  onStartUpload: () => void;
+  /** Eyebrow label for the next check-in card. */
+  nextCheckInEyebrow: string;
+  /** Headline for the next check-in card. */
+  nextCheckInHeadline: string;
+  /** Sub copy for the next check-in card. */
+  nextCheckInSub: string;
+  uploadCtaLabel: string;
 }
 
 export const ProgressScreen = ({
   progress,
   subtitle,
   photoAngles,
+  isEmpty,
+  onStartUpload,
+  nextCheckInEyebrow,
+  nextCheckInHeadline,
+  nextCheckInSub,
+  uploadCtaLabel,
 }: ProgressScreenProps) => {
-  const [slider, setSlider] = useState(50);
-
   const stats = [
-    { label: "Day", value: progress.currentDay.toString(), suffix: `/ ${progress.totalDays}`, accent: palette.paleBlue },
-    { label: "Execution", value: progress.executionPercent.toString(), suffix: "%", accent: palette.softPeach },
-    { label: "Photos", value: progress.photosUploaded.toString(), suffix: `/ ${progress.photosRequired}`, accent: palette.softLavender },
-    { label: "Streak", value: progress.streakDays.toString(), suffix: "days", accent: palette.softSage },
+    {
+      label: "Day",
+      value: progress.currentDay.toString(),
+      suffix: `/ ${progress.totalDays}`,
+      accent: palette.paleBlue,
+    },
+    {
+      label: "Execution",
+      value: progress.executionPercent.toString(),
+      suffix: "%",
+      accent: palette.softPeach,
+    },
+    {
+      label: "Photos",
+      value: progress.photosUploaded.toString(),
+      suffix: `/ ${progress.photosRequired}`,
+      accent: palette.softLavender,
+    },
+    {
+      label: "Streak",
+      value: progress.streakDays.toString(),
+      suffix: "days",
+      accent: palette.softSage,
+    },
   ];
 
   return (
@@ -51,6 +91,54 @@ export const ProgressScreen = ({
           {subtitle}
         </p>
       </div>
+
+      {/* Next check-in hero card */}
+      <Card padding="p-5" radius="rounded-[24px]" bg={palette.softLavender}>
+        <div className="flex items-start gap-3">
+          <div
+            className="w-11 h-11 rounded-[14px] flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(255,255,255,0.65)" }}
+          >
+            <Calendar size={16} color={palette.midnight} strokeWidth={1.6} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <Eyebrow color={palette.textMuted}>{nextCheckInEyebrow}</Eyebrow>
+            <h3
+              className="mt-1.5 text-[16px]"
+              style={{
+                fontFamily: fonts.title,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: palette.ink,
+              }}
+            >
+              {nextCheckInHeadline}
+            </h3>
+            <p
+              className="text-[12px] mt-1 leading-snug"
+              style={{ fontFamily: fonts.body, fontWeight: 400, color: palette.textMuted }}
+            >
+              {nextCheckInSub}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={onStartUpload}
+          className="w-full mt-4 py-3 rounded-full transition-all active:scale-[0.99]"
+          style={{
+            background: palette.midnight,
+            boxShadow: "0 8px 20px rgba(15,27,38,0.20)",
+          }}
+        >
+          <span
+            className="flex items-center justify-center gap-2 text-[13px]"
+            style={{ fontFamily: fonts.subtitle, fontWeight: 600, color: palette.stone }}
+          >
+            {uploadCtaLabel}
+            <ArrowRight size={14} strokeWidth={2} />
+          </span>
+        </button>
+      </Card>
 
       {/* Top stats */}
       <div className="grid grid-cols-2 gap-2.5">
@@ -78,38 +166,61 @@ export const ProgressScreen = ({
         ))}
       </div>
 
-      {/* Photo angles */}
+      {/* Photo angles checklist */}
       <div>
-        <SectionHeading>Photo Angles</SectionHeading>
-        <div className="grid grid-cols-2 gap-2">
-          {photoAngles.map((p) => (
+        <SectionHeading>Photo angles</SectionHeading>
+        {isEmpty ? (
+          <Card padding="p-6" radius="rounded-[20px]" bg={palette.stone}>
             <div
-              key={p.id}
-              className="flex items-center gap-2.5 px-3.5 py-3 rounded-[16px]"
-              style={{
-                background: p.uploaded ? palette.midnight : palette.white,
-                border: p.uploaded ? "none" : `1px solid ${palette.hairline}`,
-                boxShadow: shadows.card,
-              }}
+              className="w-12 h-12 rounded-[14px] flex items-center justify-center mb-3 mx-auto"
+              style={{ background: palette.white }}
             >
-              {p.uploaded ? (
-                <Check size={13} color={palette.mist} strokeWidth={2.5} />
-              ) : (
-                <Camera size={13} color={palette.textMuted} strokeWidth={1.5} />
-              )}
-              <span
-                className="text-[12px]"
+              <Camera size={17} color={palette.steel} strokeWidth={1.6} />
+            </div>
+            <p
+              className="text-center text-[14px]"
+              style={{ fontFamily: fonts.subtitle, fontWeight: 600, color: palette.ink }}
+            >
+              No photos yet
+            </p>
+            <p
+              className="text-center text-[12px] mt-1"
+              style={{ fontFamily: fonts.body, fontWeight: 400, color: palette.textMuted }}
+            >
+              Upload your first set to start tracking visible changes.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {photoAngles.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center gap-2.5 px-3.5 py-3 rounded-[16px]"
                 style={{
-                  fontFamily: fonts.subtitle,
-                  fontWeight: 500,
-                  color: p.uploaded ? palette.stone : palette.ink,
+                  background: p.uploaded ? palette.midnight : palette.white,
+                  border: p.uploaded ? "none" : `1px solid ${palette.hairline}`,
+                  boxShadow: shadows.card,
                 }}
               >
-                {p.label}
-              </span>
-            </div>
-          ))}
-        </div>
+                {p.uploaded ? (
+                  <Check size={13} color={palette.mist} strokeWidth={2.5} />
+                ) : (
+                  <Camera size={13} color={palette.textMuted} strokeWidth={1.5} />
+                )}
+                <span
+                  className="text-[12px]"
+                  style={{
+                    fontFamily: fonts.subtitle,
+                    fontWeight: 500,
+                    color: p.uploaded ? palette.stone : palette.ink,
+                  }}
+                >
+                  {p.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Trends */}
