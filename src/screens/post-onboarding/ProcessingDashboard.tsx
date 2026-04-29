@@ -95,6 +95,13 @@ export const ProcessingDashboard = ({
             }}
           >
             <div
+              className="absolute pointer-events-none"
+              style={{ top: 16, right: 16, opacity: 0.16 }}
+              aria-hidden
+            >
+              <QinoMark size={56} />
+            </div>
+            <div
               className="absolute top-0 right-12 bottom-0 w-px qino-axis-pulse"
               style={{
                 background: `linear-gradient(180deg, transparent, ${palette.midnight}, transparent)`,
