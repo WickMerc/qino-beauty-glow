@@ -6,6 +6,7 @@ import {
   Activity, Droplet, Scissors, Eye, Lightbulb,
   Stethoscope, ArrowUpRight, Minus,
 } from "lucide-react";
+import QinoApp from "../App";
 
 /* =========================================================
    QINO — Post-onboarding states + Mock Report
