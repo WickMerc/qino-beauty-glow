@@ -5,14 +5,18 @@
 // States: prescan → scan → processing → report → complete
 // Overlays (modals + feature detail) handled by useDashboardOverlays.
 //
-// Iteration 6B: scan submission writes scan_session + scan_photo metadata
-// to Supabase. Real file upload comes in iteration 7.
+// Iteration 7B: scan submission triggers real analysis pipeline.
+//   1. Create scan_session row
+//   2. Insert 6 scan_photos rows (placeholder paths)
+//   3. Mark scan_session uploaded
+//   4. Invoke generate-analysis Edge Function
+//   5. Processing screen polls for completion
+//   6. Report screen displays real data via useQinoData
 // =====================================================================
 
 import { useState } from "react";
 import type { UserProfile } from "../../types";
 import {
-  mockAnalysisReport,
   mockProductStack,
   preScanContent,
   processingContent,
@@ -23,7 +27,9 @@ import {
   createScanSession,
   insertScanPhotos,
   markScanSessionUploaded,
+  generateAnalysisReport,
 } from "../../data/qinoApi";
+import { useQinoData } from "../../data/useQinoData";
 import { palette } from "../../theme";
 
 import { PreScanDashboard } from "./PreScanDashboard";
@@ -49,7 +55,10 @@ export const PostOnboardingFlow = ({
   onComplete,
 }: PostOnboardingFlowProps) => {
   const [stage, setStage] = useState<PostOnboardingStage>(initialStage);
+  /** Session id of the scan currently being processed; passed to ProcessingDashboard for polling. */
+  const [activeScanSessionId, setActiveScanSessionId] = useState<string | null>(null);
   const overlays = useDashboardOverlays();
+  const qinoData = useQinoData();
 
   const animationStyles = `
     @keyframes qinoAxisPulse { 0%, 100% { opacity: 0.20; } 50% { opacity: 0.55; } }
@@ -66,6 +75,52 @@ export const PostOnboardingFlow = ({
 
   const productCount =
     mockProductStack.essentials.length + mockProductStack.targeted.length;
+
+  // Handle scan submission: persist + invoke + transition
+  const handleScanSubmit = async () => {
+    setStage("processing");
+
+    try {
+      const sessionId = await createScanSession();
+      if (!sessionId) {
+        console.warn("[PostOnboardingFlow] createScanSession returned null");
+        return;
+      }
+      setActiveScanSessionId(sessionId);
+
+      const angles: Array<"front" | "smile" | "left" | "right" | "fortyfive" | "skin"> = [
+        "front",
+        "smile",
+        "left",
+        "right",
+        "fortyfive",
+        "skin",
+      ];
+      await insertScanPhotos(
+        angles.map((a) => ({
+          scan_session_id: sessionId,
+          angle_type: a,
+          // Placeholder paths — real upload comes when camera capture lands.
+          storage_path: `mock/${sessionId}/${a}.jpg`,
+        }))
+      );
+      await markScanSessionUploaded(sessionId);
+
+      // Fire the analysis pipeline. We do not await the return here because
+      // the processing screen polls for completion independently.
+      generateAnalysisReport(sessionId).catch((err) =>
+        console.warn("[PostOnboardingFlow] generateAnalysisReport failed:", err)
+      );
+    } catch (err) {
+      console.warn("[PostOnboardingFlow] scan submission failed:", err);
+    }
+  };
+
+  // When processing finishes, refresh data so the report screen has real data
+  const handleProcessingComplete = async () => {
+    await qinoData.refresh();
+    setStage("report");
+  };
 
   // Wire report card clicks to overlays
   const handleReportCardClick = (cardId: string) => {
@@ -102,30 +157,7 @@ export const PostOnboardingFlow = ({
           prepContent={guidedScanContent.prep}
           reviewContent={guidedScanContent.review}
           onClose={() => setStage("prescan")}
-          onSubmit={async () => {
-            // Persist scan session + photo metadata. Fire-and-forget — we
-            // continue to processing even if Supabase is unreachable, since
-            // analysis still comes from mock data.
-            (async () => {
-              const sessionId = await createScanSession();
-              if (!sessionId) return;
-              const angles: Array<
-                "front" | "smile" | "left" | "right" | "fortyfive" | "skin"
-              > = ["front", "smile", "left", "right", "fortyfive", "skin"];
-              await insertScanPhotos(
-                angles.map((a) => ({
-                  scan_session_id: sessionId,
-                  angle_type: a,
-                  // Real storage path comes in iteration 7. Placeholder for now.
-                  storage_path: `mock/${sessionId}/${a}.jpg`,
-                }))
-              );
-              await markScanSessionUploaded(sessionId);
-            })().catch((err) =>
-              console.warn("[PostOnboardingFlow] scan persist failed:", err)
-            );
-            setStage("processing");
-          }}
+          onSubmit={handleScanSubmit}
         />
       )}
 
@@ -133,14 +165,15 @@ export const PostOnboardingFlow = ({
         <ProcessingDashboard
           user={user}
           {...processingContent}
-          onComplete={() => setStage("report")}
+          scanSessionId={activeScanSessionId}
+          onComplete={handleProcessingComplete}
         />
       )}
 
       {stage === "report" && (
         <AnalysisReportScreen
           user={user}
-          report={mockAnalysisReport}
+          report={qinoData.data.report}
           productCount={productCount}
           {...reportContent}
           onContinue={() => setStage("complete")}
