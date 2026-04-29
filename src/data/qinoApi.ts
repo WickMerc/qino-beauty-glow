@@ -49,14 +49,14 @@ export const saveOnboardingAnswers = async (
   const { error } = await supabase.from("onboarding_answers").upsert(
     {
       user_id: CURRENT_USER_ID,
-      goals: answers.goals,
-      personalization: answers.personalization,
-      comfort: answers.comfort,
+      goals: answers.goals as unknown as never,
+      personalization: answers.personalization as unknown as never,
+      comfort: answers.comfort as unknown as never,
       budget: answers.budget,
       routine: answers.routine,
-      body: answers.body,
-      skin: answers.skin,
-      hair: answers.hair,
+      body: answers.body as unknown as never,
+      skin: answers.skin as unknown as never,
+      hair: answers.hair as unknown as never,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" }
@@ -80,23 +80,23 @@ export const fetchOnboardingAnswers = async (): Promise<OnboardingAnswers | null
   }
   // Cast JSONB → typed answers. Real schema validation lands later.
   return {
-    goals: (data.goals as OnboardingAnswers["goals"]) ?? [],
+    goals: (data.goals as unknown as OnboardingAnswers["goals"]) ?? [],
     personalization:
-      (data.personalization as OnboardingAnswers["personalization"]) ?? {
+      (data.personalization as unknown as OnboardingAnswers["personalization"]) ?? {
         gender: null,
         direction: null,
       },
-    comfort: (data.comfort as OnboardingAnswers["comfort"]) ?? [],
+    comfort: (data.comfort as unknown as OnboardingAnswers["comfort"]) ?? [],
     budget: data.budget as OnboardingAnswers["budget"],
     routine: data.routine as OnboardingAnswers["routine"],
-    body: (data.body as OnboardingAnswers["body"]) ?? {
+    body: (data.body as unknown as OnboardingAnswers["body"]) ?? {
       height: 178,
       weight: 78,
       target: 75,
       composition: null,
     },
-    skin: (data.skin as OnboardingAnswers["skin"]) ?? [],
-    hair: (data.hair as OnboardingAnswers["hair"]) ?? {
+    skin: (data.skin as unknown as OnboardingAnswers["skin"]) ?? [],
+    hair: (data.hair as unknown as OnboardingAnswers["hair"]) ?? {
       hairline: null,
       density: null,
       styleGoal: "",
