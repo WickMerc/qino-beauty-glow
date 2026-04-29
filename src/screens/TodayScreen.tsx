@@ -104,9 +104,6 @@ export const TodayScreen = ({
             background: `linear-gradient(180deg, transparent, ${palette.midnight}, transparent)`,
           }}
         />
-        <div className="absolute -right-6 top-6 opacity-15">
-          <QinoMark size={120} color={palette.midnight} />
-        </div>
 
         <div className="relative">
           <h2

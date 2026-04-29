@@ -182,6 +182,12 @@ export const Donut = ({
 // updating this component swaps the logo globally across the app.
 import qinoLogo from "../assets/qino-logo.png";
 
+// Native aspect ratio of the logo lockup asset (mark + "QINO" wordmark).
+// Measured from src/assets/qino-logo.png. Used so the `size` prop drives the
+// VISUAL height of the mark and the width scales naturally — no squashing
+// into a square, no tiny mark floating in whitespace.
+const QINO_LOGO_ASPECT = 3.2; // width / height of the visible artwork
+
 export const QinoMark = ({
   size = 28,
   // `color` is accepted for backward-compatibility with existing call sites
@@ -190,22 +196,27 @@ export const QinoMark = ({
 }: {
   size?: number;
   color?: string;
-}) => (
-  <img
-    src={qinoLogo}
-    alt="QINO"
-    width={size}
-    height={size}
-    style={{
-      width: size,
-      height: size,
-      objectFit: "contain",
-      display: "block",
-      userSelect: "none",
-    }}
-    draggable={false}
-  />
-);
+}) => {
+  const height = size;
+  const width = Math.round(size * QINO_LOGO_ASPECT);
+  return (
+    <img
+      src={qinoLogo}
+      alt="QINO"
+      width={width}
+      height={height}
+      style={{
+        height,
+        width: "auto",
+        maxWidth: "100%",
+        objectFit: "contain",
+        display: "block",
+        userSelect: "none",
+      }}
+      draggable={false}
+    />
+  );
+};
 
 // ---------- Helper: resolve accent key to color ----------
 export const resolveAccent = (key?: string, fallback: string = palette.stone): string => {

@@ -43,9 +43,6 @@ export const StepWelcome = ({ content, onContinue }: StepWelcomeProps) => (
         minHeight: 280,
       }}
     >
-      <div className="absolute -right-8 -bottom-8 opacity-20">
-        <QinoMark size={220} color={palette.midnight} />
-      </div>
       <div className="relative h-full flex flex-col justify-end" style={{ minHeight: 240 }}>
         <Eyebrow color={palette.textMuted}>{content.eyebrow}</Eyebrow>
         <h1

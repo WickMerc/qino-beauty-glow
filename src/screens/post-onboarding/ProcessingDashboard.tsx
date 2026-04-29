@@ -100,9 +100,6 @@ export const ProcessingDashboard = ({
                 background: `linear-gradient(180deg, transparent, ${palette.midnight}, transparent)`,
               }}
             />
-            <div className="absolute -right-8 top-10 opacity-25 qino-mark-spin">
-              <QinoMark size={160} color={palette.midnight} />
-            </div>
 
             <div className="relative">
               <Eyebrow color={palette.textMuted}>{heroEyebrow}</Eyebrow>

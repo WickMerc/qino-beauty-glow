@@ -47,9 +47,6 @@ export const TrialOfferCard = ({
           boxShadow: shadows.card,
         }}
       >
-        <div className="absolute -right-6 -bottom-6 opacity-20">
-          <QinoMark size={120} color={palette.midnight} />
-        </div>
         <div className="relative">
           <div className="flex items-center gap-2">
             <div
@@ -117,9 +114,6 @@ export const TrialOfferCard = ({
           boxShadow: shadows.hero,
         }}
       >
-        <div className="absolute -right-10 -bottom-10 opacity-15">
-          <QinoMark size={200} color={palette.midnight} />
-        </div>
         <div className="relative">
           <div
             className="w-12 h-12 rounded-[14px] flex items-center justify-center mb-4"
