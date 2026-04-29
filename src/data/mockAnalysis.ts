@@ -57,24 +57,31 @@ export const mockAnalysisReport: AnalysisReport = {
   strengths: [
     {
       id: "strength_1",
-      label: "Strong facial symmetry",
+      label: "High symmetry",
       sub: "Above population average",
       iconKey: "sparkles",
       accentKey: "softSage",
     },
     {
       id: "strength_2",
-      label: "Defined nose bridge",
-      sub: "Reads as a focal asset",
+      label: "Strong facial structure",
+      sub: "Defined bone foundation",
       iconKey: "activity",
       accentKey: "paleBlue",
     },
     {
       id: "strength_3",
-      label: "Clear undertone",
-      sub: "Olive, even base color",
+      label: "Good proportions",
+      sub: "Balanced thirds & fifths",
       iconKey: "sun",
       accentKey: "softPeach",
+    },
+    {
+      id: "strength_4",
+      label: "Strong hair / frame potential",
+      sub: "Density and shape work in your favor",
+      iconKey: "scissors",
+      accentKey: "softLavender",
     },
   ],
 
@@ -89,7 +96,7 @@ export const mockAnalysisReport: AnalysisReport = {
     },
     {
       id: "opp_2",
-      label: "Skin texture & evenness",
+      label: "Skin evenness & texture",
       sub: "Daily protocol leverage",
       impact: "high",
       iconKey: "droplet",
@@ -97,11 +104,19 @@ export const mockAnalysisReport: AnalysisReport = {
     },
     {
       id: "opp_3",
-      label: "Grooming & frame",
+      label: "Grooming frame",
       sub: "Hair shape, brow cleanup",
       impact: "medium",
       iconKey: "scissors",
       accentKey: "softLavender",
+    },
+    {
+      id: "opp_4",
+      label: "Smile brightness",
+      sub: "Polish the lower-face frame",
+      impact: "medium",
+      iconKey: "sparkles",
+      accentKey: "paleBlue",
     },
   ],
 
