@@ -7,6 +7,10 @@ import {
   Stethoscope, ArrowUpRight, Minus,
 } from "lucide-react";
 import QinoApp from "../App";
+import { mockAnalysisReport } from "../data/mockAnalysis";
+import { mockUser } from "../data/mockUser";
+import { getIcon } from "../iconRegistry";
+import { accentByKey } from "../theme";
 
 /* =========================================================
    QINO — Post-onboarding states + Mock Report
