@@ -49,14 +49,14 @@ export const saveOnboardingAnswers = async (
   const { error } = await supabase.from("onboarding_answers").upsert(
     {
       user_id: CURRENT_USER_ID,
-      goals: answers.goals,
-      personalization: answers.personalization,
-      comfort: answers.comfort,
+      goals: answers.goals as unknown as never,
+      personalization: answers.personalization as unknown as never,
+      comfort: answers.comfort as unknown as never,
       budget: answers.budget,
       routine: answers.routine,
-      body: answers.body,
-      skin: answers.skin,
-      hair: answers.hair,
+      body: answers.body as unknown as never,
+      skin: answers.skin as unknown as never,
+      hair: answers.hair as unknown as never,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" }
