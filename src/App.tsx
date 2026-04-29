@@ -3,32 +3,26 @@
 // Orchestrates the full user journey:
 //   onboarding → post-onboarding (pre-scan / scan / processing / report) → dashboard
 //
-// State machine is local for now. Backend replacement point:
-//   Replace `useState<AppStage>` with a hook that derives stage from
-//   user.onboardingCompleted, scan_session.status, and analysis_reports.
+// Iteration 6B: onboarding answers persist to Supabase on completion.
+// User profile is hydrated from Supabase via useQinoData (with mock fallback).
 // =====================================================================
 
 import { useState } from "react";
 import type { AppStage } from "./types";
-import { mockUser } from "./data";
+import { saveOnboardingAnswers } from "./data/qinoApi";
+import { useQinoData } from "./data/useQinoData";
 import { palette, fonts } from "./theme";
 
 import { OnboardingFlow } from "./screens/onboarding/OnboardingFlow";
 import { PostOnboardingFlow, type PostOnboardingStage } from "./screens/post-onboarding/PostOnboardingFlow";
 import Dashboard from "./Dashboard";
 
-/**
- * Used to decide which post-onboarding stage to start in:
- *  - "scan"      → user clicked "Start scan now" at end of onboarding
- *  - "prescan"   → user clicked "Go to dashboard" (defer scan)
- *  - "complete"  → already done (e.g. returning user)
- */
 type EntryStage = Extract<PostOnboardingStage, "scan" | "prescan" | "complete">;
 
 export default function App() {
-  // Top-level stage of the journey. In real backend this comes from the user record.
   const [stage, setStage] = useState<AppStage>("onboarding");
   const [postEntryStage, setPostEntryStage] = useState<EntryStage>("prescan");
+  const { data } = useQinoData();
 
   return (
     <div
@@ -48,7 +42,12 @@ export default function App() {
             // CTA when they reopen the app. Per QINO's design, the user has no app
             // access until a scan is completed — so closing should not unlock anything.
           }}
-          onComplete={(result) => {
+          onComplete={async (result) => {
+            // Fire-and-forget save to Supabase. Failure does not block the user
+            // since mock data still drives the UI for now.
+            saveOnboardingAnswers(result.answers).catch((err) =>
+              console.warn("[App] saveOnboardingAnswers failed:", err)
+            );
             setPostEntryStage(result.startScan ? "scan" : "prescan");
             setStage("prescan");
           }}
@@ -60,7 +59,7 @@ export default function App() {
         stage === "processing" ||
         stage === "report") && (
         <PostOnboardingFlow
-          user={mockUser}
+          user={data.user}
           initialStage={postEntryStage}
           onComplete={() => setStage("complete")}
         />
