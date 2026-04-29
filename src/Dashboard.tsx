@@ -2,31 +2,20 @@
 // QINO — Dashboard
 // The live 5-tab app, shown after onboarding + scan + report are done.
 //
-// Iteration 5 additions:
-// - Subscription gating: free users see report + locked previews,
-//   paid/trial users get full daily system
-// - Coach, Protocol, Progress, Product Stack, Pathways all gated
-// - Analysis tab stays free (full report access)
+// Iteration 6B: profile is hydrated from Supabase via useQinoData.
+// Other data (protocol, report, products, pathways, progress, coach)
+// remains mock-driven until iteration 7-8 generate them server-side.
 // =====================================================================
 
 import { useState } from "react";
 import {
-  mockUser,
-  mockProtocol,
-  mockAnalysisReport,
-  mockProductStack,
-  mockTreatmentPathways,
-  mockProgress,
-  mockCoachState,
-  mockTodayFocus,
-  mockComingUp,
-  mockGreeting,
   reportContent,
   coachResponses,
   coachContext,
   QINO_SAFETY_NOTE,
   QINO_COACH_FALLBACK_REPLY,
 } from "./data";
+import { useQinoData } from "./data/useQinoData";
 
 import { palette, fonts } from "./theme";
 import { TopBar, BottomNav, type TabId } from "./components/Chrome";
@@ -43,21 +32,8 @@ import { ProtocolScreen } from "./screens/ProtocolScreen";
 import { ProgressScreen } from "./screens/ProgressScreen";
 import { CoachScreen } from "./screens/CoachScreen";
 
-const useMockData = () => ({
-  user: mockUser,
-  protocol: mockProtocol,
-  report: mockAnalysisReport,
-  productStack: mockProductStack,
-  pathways: mockTreatmentPathways,
-  progress: mockProgress,
-  coach: mockCoachState,
-  todayFocusLine: mockTodayFocus.focusLine,
-  comingUp: mockComingUp,
-  greetingPrefix: mockGreeting.morning,
-});
-
 export default function Dashboard() {
-  const data = useMockData();
+  const { data, loading } = useQinoData();
   const [tab, setTab] = useState<TabId>("today");
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const overlays = useDashboardOverlays();

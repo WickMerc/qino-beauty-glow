@@ -4,6 +4,9 @@
 //
 // States: prescan → scan → processing → report → complete
 // Overlays (modals + feature detail) handled by useDashboardOverlays.
+//
+// Iteration 6B: scan submission writes scan_session + scan_photo metadata
+// to Supabase. Real file upload comes in iteration 7.
 // =====================================================================
 
 import { useState } from "react";
@@ -16,6 +19,11 @@ import {
   guidedScanContent,
   reportContent,
 } from "../../data";
+import {
+  createScanSession,
+  insertScanPhotos,
+  markScanSessionUploaded,
+} from "../../data/qinoApi";
 import { palette } from "../../theme";
 
 import { PreScanDashboard } from "./PreScanDashboard";
@@ -94,7 +102,30 @@ export const PostOnboardingFlow = ({
           prepContent={guidedScanContent.prep}
           reviewContent={guidedScanContent.review}
           onClose={() => setStage("prescan")}
-          onSubmit={() => setStage("processing")}
+          onSubmit={async () => {
+            // Persist scan session + photo metadata. Fire-and-forget — we
+            // continue to processing even if Supabase is unreachable, since
+            // analysis still comes from mock data.
+            (async () => {
+              const sessionId = await createScanSession();
+              if (!sessionId) return;
+              const angles: Array<
+                "front" | "smile" | "left" | "right" | "fortyfive" | "skin"
+              > = ["front", "smile", "left", "right", "fortyfive", "skin"];
+              await insertScanPhotos(
+                angles.map((a) => ({
+                  scan_session_id: sessionId,
+                  angle_type: a,
+                  // Real storage path comes in iteration 7. Placeholder for now.
+                  storage_path: `mock/${sessionId}/${a}.jpg`,
+                }))
+              );
+              await markScanSessionUploaded(sessionId);
+            })().catch((err) =>
+              console.warn("[PostOnboardingFlow] scan persist failed:", err)
+            );
+            setStage("processing");
+          }}
         />
       )}
 

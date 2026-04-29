@@ -178,24 +178,32 @@ export const Donut = ({
 };
 
 // ---------- QINO Logo Mark ----------
-// Uses the official QINO brand mark (raster). The `color` prop is preserved
-// for API compatibility with previous SVG version but is a no-op for the image.
-import qinoLogo from "../assets/qino-logo.png";
-
 export const QinoMark = ({
   size = 28,
-  color: _color = palette.midnight,
+  color = palette.midnight,
 }: {
   size?: number;
   color?: string;
 }) => (
-  <img
-    src={qinoLogo}
-    alt="QINO"
-    width={size}
-    height={size}
-    style={{ width: size, height: size, objectFit: "contain", display: "block" }}
-  />
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+    <defs>
+      <linearGradient id={`qmG-${color.replace("#", "")}`} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor={color} />
+        <stop offset="100%" stopColor={color} stopOpacity="0.45" />
+      </linearGradient>
+    </defs>
+    <ellipse
+      cx="32"
+      cy="32"
+      rx="17"
+      ry="25"
+      stroke={`url(#qmG-${color.replace("#", "")})`}
+      strokeWidth="2.4"
+      fill="none"
+    />
+    <line x1="32" y1="2" x2="32" y2="62" stroke={color} strokeWidth="1.6" />
+    <path d="M40 22 Q47 32 40 42" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" />
+  </svg>
 );
 
 // ---------- Helper: resolve accent key to color ----------
