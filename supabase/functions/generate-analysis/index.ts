@@ -296,21 +296,19 @@ Deno.serve(async (req: Request) => {
       .update({ status: "processing" })
       .eq("id", scanSessionId);
 
-    // Read onboarding answers
-    const { data: answers, error: ansErr } = await supabase
+    // Verify user has completed onboarding (existence check only)
+    const { count, error: ansErr } = await supabase
       .from("onboarding_answers")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
+      .select("user_id", { count: "exact", head: true })
+      .eq("user_id", userId);
 
     if (ansErr) throw ansErr;
-    if (!answers) {
+    if (!count || count === 0) {
       return json(422, { error: "onboarding answers not found for user" });
     }
 
     // Build report
-    const baseReport = buildBaseReport();
-    const report = applyParameterization(baseReport, answers as OnboardingAnswers);
+    const report = buildBaseReport();
 
     // Insert analysis_reports row (status: generating)
     const { data: inserted, error: reportErr } = await supabase
