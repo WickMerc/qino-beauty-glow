@@ -318,8 +318,8 @@ export const ProcessingDashboard = ({
                 }}
               >
                 {reportStatus === "timeout"
-                  ? "Your scan is still processing in the background. You can return shortly."
-                  : "Please try submitting your scan again."}
+                  ? "Your scan is still in our queue. You can return shortly to see your report."
+                  : "Thanks for your patience — please try submitting your scan again in a few minutes."}
               </p>
               <button
                 onClick={onComplete}
