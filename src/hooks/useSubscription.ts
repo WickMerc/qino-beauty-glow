@@ -66,12 +66,13 @@ const DEFAULT: Omit<SubscriptionState, "isLocked" | "canAccess" | "refresh"> = {
 // old mock version. We accept and ignore it so existing call sites keep working.
 export const useSubscription = (
   _initial?: unknown,
-  _initialTrialEnd?: unknown
+  _initialTrialEnd?: unknown,
 ): SubscriptionState => {
   void _initial;
   void _initialTrialEnd;
 
   const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [state, setState] =
     useState<Omit<SubscriptionState, "isLocked" | "canAccess" | "refresh">>(DEFAULT);
   const userIdRef = useRef<string | null>(null);
@@ -101,9 +102,7 @@ export const useSubscription = (
     }
     const { data, error } = await supabase
       .from("subscriptions")
-      .select(
-        "status, current_plan, trial_ends_at, current_period_end, cancel_at_period_end"
-      )
+      .select("status, current_plan, trial_ends_at, current_period_end, cancel_at_period_end")
       .eq("user_id", uid)
       .maybeSingle();
     if (error) {
@@ -115,43 +114,44 @@ export const useSubscription = (
   }, [applyRow]);
 
   useEffect(() => {
-    userIdRef.current = user?.id ?? null;
-    if (!user) {
+    userIdRef.current = userId;
+    if (!userId) {
       setState({ ...DEFAULT, loading: false });
       return;
     }
     setState((s) => ({ ...s, loading: true }));
     void refresh();
 
+    const channelName = `subscriptions:${userId}:${crypto.randomUUID()}`;
     const channel = supabase
-      .channel(`subscriptions:${user.id}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "subscriptions",
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           const next = (payload.new as unknown as SubRow) ?? null;
           if (next) applyRow(next);
-        }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, refresh, applyRow]);
+  }, [userId, refresh, applyRow]);
 
   const isLocked = useCallback(
     (_feature: GatedFeature) => !PAID_STATUSES.includes(state.status),
-    [state.status]
+    [state.status],
   );
   const canAccess = useCallback(
     (_feature: GatedFeature) => PAID_STATUSES.includes(state.status),
-    [state.status]
+    [state.status],
   );
 
   return { ...state, isLocked, canAccess, refresh };
