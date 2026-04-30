@@ -229,7 +229,7 @@ const Field = ({
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
-} & React.InputHTMLAttributes<HTMLInputElement>) => (
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "type" | "placeholder">) => (
   <input
     {...rest}
     type={type}
