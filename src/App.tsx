@@ -36,6 +36,25 @@ export default function App() {
   const [stage, setStage] = useState<AppStage>("onboarding");
   const [postEntryStage, setPostEntryStage] = useState<EntryStage>("prescan");
 
+  // Reset pre-auth flow when the user signs out, so a freshly signed-out
+  // session lands back in onboarding (not stuck on AuthScreen).
+  const wasAuthedRef = useRef(false);
+  useEffect(() => {
+    if (user) {
+      wasAuthedRef.current = true;
+      return;
+    }
+    if (wasAuthedRef.current && !user) {
+      wasAuthedRef.current = false;
+      setOnboardingDone(false);
+      setPendingAnswers(null);
+      setPendingStartScan(false);
+      persistedRef.current = false;
+      setStage("onboarding");
+      setPostEntryStage("prescan");
+    }
+  }, [user]);
+
   // After sign-in, persist any pending onboarding answers exactly once
   useEffect(() => {
     if (!user || persistedRef.current) return;
