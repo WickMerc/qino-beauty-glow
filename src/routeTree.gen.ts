@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhatsIncludedRouteImport } from './routes/whats-included'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionSuccessRouteImport } from './routes/subscription.success'
 
+const WhatsIncludedRoute = WhatsIncludedRouteImport.update({
+  id: '/whats-included',
+  path: '/whats-included',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
+  '/whats-included': typeof WhatsIncludedRoute
   '/subscription/success': typeof SubscriptionSuccessRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
+  '/whats-included': typeof WhatsIncludedRoute
   '/subscription/success': typeof SubscriptionSuccessRoute
 }
 export interface FileRoutesById {
@@ -61,6 +69,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
+  '/whats-included': typeof WhatsIncludedRoute
   '/subscription/success': typeof SubscriptionSuccessRoute
 }
 export interface FileRouteTypes {
@@ -70,6 +79,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/reset-password'
     | '/settings'
+    | '/whats-included'
     | '/subscription/success'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -77,6 +87,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/reset-password'
     | '/settings'
+    | '/whats-included'
     | '/subscription/success'
   id:
     | '__root__'
@@ -84,6 +95,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/reset-password'
     | '/settings'
+    | '/whats-included'
     | '/subscription/success'
   fileRoutesById: FileRoutesById
 }
@@ -92,11 +104,19 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
+  WhatsIncludedRoute: typeof WhatsIncludedRoute
   SubscriptionSuccessRoute: typeof SubscriptionSuccessRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whats-included': {
+      id: '/whats-included'
+      path: '/whats-included'
+      fullPath: '/whats-included'
+      preLoaderRoute: typeof WhatsIncludedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -140,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
+  WhatsIncludedRoute: WhatsIncludedRoute,
   SubscriptionSuccessRoute: SubscriptionSuccessRoute,
 }
 export const routeTree = rootRouteImport
