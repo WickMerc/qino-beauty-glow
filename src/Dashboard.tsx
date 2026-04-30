@@ -179,7 +179,7 @@ export default function Dashboard() {
           <TodayScreen
             user={data.user}
             protocol={data.protocol}
-            report={data.report}
+            report={report}
             todayFocusLine={data.todayFocusLine}
             comingUp={data.comingUp}
             greetingPrefix={data.greetingPrefix}
@@ -193,7 +193,7 @@ export default function Dashboard() {
 
         {tab === "analysis" && (
           <AnalysisScreen
-            report={data.report}
+            report={report}
             onOpenFeatureGroup={overlays.openFeatureGroup}
             onOpenFullReport={overlays.openFullReport}
           />
