@@ -306,8 +306,8 @@ export const ProcessingDashboard = ({
                 }}
               >
                 {reportStatus === "timeout"
-                  ? "This is taking longer than expected"
-                  : "We hit a problem generating your report"}
+                  ? "We're processing a lot of scans right now"
+                  : "QINO is experiencing high demand right now"}
               </p>
               <p
                 className="text-[12px] mt-1.5"
