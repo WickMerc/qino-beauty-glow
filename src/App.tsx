@@ -1,30 +1,69 @@
 // =====================================================================
-// QINO — Top-level App
-// Orchestrates the full user journey:
-//   onboarding → post-onboarding (pre-scan / scan / processing / report) → dashboard
-//
-// Iteration 6B: onboarding answers persist to Supabase on completion.
-// User profile is hydrated from Supabase via useQinoData (with mock fallback).
+// QINO — Top-level App (iteration 9)
+// Auth-aware orchestration:
+//   - Unauthenticated + onboarding incomplete → onboarding flow
+//   - Onboarding done + no user yet → AuthScreen
+//   - Authenticated → persist pending onboarding answers, then continue
+//   - Authenticated + has report → Dashboard, else post-onboarding flow
 // =====================================================================
 
-import { useState } from "react";
-import type { AppStage } from "./types";
+import { useEffect, useRef, useState } from "react";
+import type { AppStage, OnboardingAnswers } from "./types";
 import { saveOnboardingAnswers } from "./data/qinoApi";
 import { useQinoData } from "./data/useQinoData";
+import { useAuth } from "./hooks/useAuth";
 import { palette, fonts } from "./theme";
 
 import { OnboardingFlow } from "./screens/onboarding/OnboardingFlow";
 import { PostOnboardingFlow, type PostOnboardingStage } from "./screens/post-onboarding/PostOnboardingFlow";
+import { AuthScreen } from "./screens/auth/AuthScreen";
+import { EmailVerificationBanner } from "./components/EmailVerificationBanner";
 import Dashboard from "./Dashboard";
 
 type EntryStage = Extract<PostOnboardingStage, "scan" | "prescan" | "complete">;
 
 export default function App() {
+  const { user, loading: authLoading } = useAuth();
+  const { data, refresh, reportIsReal, hasFetched } = useQinoData();
+
+  // Pre-auth onboarding state
+  const [onboardingDone, setOnboardingDone] = useState(false);
+  const [pendingAnswers, setPendingAnswers] = useState<OnboardingAnswers | null>(null);
+  const [pendingStartScan, setPendingStartScan] = useState(false);
+  const persistedRef = useRef(false);
+
+  // Post-auth flow state
   const [stage, setStage] = useState<AppStage>("onboarding");
   const [postEntryStage, setPostEntryStage] = useState<EntryStage>("prescan");
-  const { data } = useQinoData();
 
-  return (
+  // After sign-in, persist any pending onboarding answers exactly once
+  useEffect(() => {
+    if (!user || persistedRef.current) return;
+    if (pendingAnswers) {
+      persistedRef.current = true;
+      saveOnboardingAnswers(pendingAnswers)
+        .catch((err) => console.warn("[App] saveOnboardingAnswers failed:", err))
+        .finally(() => {
+          setPendingAnswers(null);
+          setPostEntryStage(pendingStartScan ? "scan" : "prescan");
+          setStage("prescan");
+        });
+    }
+  }, [user, pendingAnswers, pendingStartScan]);
+
+  // After auth + initial data fetch, route to correct stage
+  useEffect(() => {
+    if (!user || !hasFetched || pendingAnswers) return;
+    if (reportIsReal) {
+      setStage("complete");
+    } else if (stage === "onboarding") {
+      // Returning user with no report → start in prescan
+      setStage("prescan");
+      setPostEntryStage("prescan");
+    }
+  }, [user, hasFetched, reportIsReal, pendingAnswers, stage]);
+
+  const wrap = (children: React.ReactNode) => (
     <div
       className="min-h-screen w-full"
       style={{ background: palette.ivory, fontFamily: fonts.body, color: palette.ink }}
@@ -33,39 +72,64 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
         body { -webkit-font-smoothing: antialiased; background: ${palette.ivory}; }
       `}</style>
+      {user && <EmailVerificationBanner user={user} />}
+      {children}
+    </div>
+  );
 
-      {stage === "onboarding" && (
+  if (authLoading) {
+    return wrap(
+      <div className="min-h-screen flex items-center justify-center text-[13px]" style={{ color: palette.textDim }}>
+        Loading…
+      </div>
+    );
+  }
+
+  // No user yet
+  if (!user) {
+    if (!onboardingDone) {
+      return wrap(
         <OnboardingFlow
           onClose={() => {
-            // For prototype: closing onboarding mid-flow keeps them in onboarding.
-            // Real implementation: persist progress, allow exit, show "Resume onboarding"
-            // CTA when they reopen the app. Per QINO's design, the user has no app
-            // access until a scan is completed — so closing should not unlock anything.
+            // Keep them in onboarding — no app access until completion.
           }}
-          onComplete={async (result) => {
-            // Fire-and-forget save to Supabase. Failure does not block the user
-            // since mock data still drives the UI for now.
-            saveOnboardingAnswers(result.answers).catch((err) =>
-              console.warn("[App] saveOnboardingAnswers failed:", err)
-            );
-            setPostEntryStage(result.startScan ? "scan" : "prescan");
-            setStage("prescan");
+          onComplete={(result) => {
+            setPendingAnswers(result.answers);
+            setPendingStartScan(result.startScan);
+            setOnboardingDone(true);
           }}
         />
-      )}
+      );
+    }
+    return wrap(<AuthScreen />);
+  }
 
-      {(stage === "prescan" ||
+  // Authenticated — but data not yet hydrated
+  if (!hasFetched) {
+    return wrap(
+      <div className="min-h-screen flex items-center justify-center text-[13px]" style={{ color: palette.textDim }}>
+        Loading your QINO…
+      </div>
+    );
+  }
+
+  return wrap(
+    <>
+      {(stage === "onboarding" || stage === "prescan" ||
         stage === "scanning" ||
         stage === "processing" ||
         stage === "report") && (
         <PostOnboardingFlow
           user={data.user}
           initialStage={postEntryStage}
-          onComplete={() => setStage("complete")}
+          onComplete={async () => {
+            await refresh();
+            setStage("complete");
+          }}
         />
       )}
 
       {stage === "complete" && <Dashboard />}
-    </div>
+    </>
   );
 }

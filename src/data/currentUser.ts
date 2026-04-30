@@ -1,14 +1,8 @@
 // =====================================================================
-// QINO — Current User ID
-// Hardcoded mock user ID for prototype. When auth lands (iteration 11),
-// this file is replaced with a hook that returns session.user.id.
-//
-// Every Supabase query that needs a user_id imports from here so the
-// migration is a one-line change.
+// QINO — currentUser (iteration 9)
+// Mock user ID is removed. Imports preserved as a no-op for any
+// straggling import; new code MUST go through useAuth / supabase.auth.
 // =====================================================================
 
-/**
- * The mock user ID matching the seed row in the `profiles` table.
- * Used everywhere a user_id is needed during the no-auth prototype phase.
- */
-export const CURRENT_USER_ID = "user_mock_1";
+/** @deprecated — auth.uid() is the source of truth. Do not use. */
+export const CURRENT_USER_ID = "" as const;
