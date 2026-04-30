@@ -358,3 +358,140 @@ export interface PriorityItemRow {
   priority_level: "high" | "medium" | "low";
   sort_order: number;
 }
+
+// =====================================================================
+// COACH (iteration 8B)
+// Real Claude Haiku-powered chat, grounded in the user's analysis report.
+// =====================================================================
+
+export interface CoachMessageRow {
+  id: string;
+  role: "user" | "qino";
+  content: string;
+  created_at: string;
+}
+
+/**
+ * Fetch the user's coach message history (most recent N), returned in
+ * chronological order (oldest first) for direct rendering in the chat.
+ */
+export const fetchCoachHistory = async (
+  limit = 50
+): Promise<CoachMessageRow[]> => {
+  const { data, error } = await supabase
+    .from("coach_messages")
+    .select("id, role, content, created_at")
+    .eq("user_id", CURRENT_USER_ID)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.warn("[qinoApi] fetchCoachHistory error:", error.message);
+    return [];
+  }
+  return ((data ?? []) as CoachMessageRow[]).slice().reverse();
+};
+
+/**
+ * Send a message to Coach and stream the reply back.
+ * `onDelta` fires for each incremental text chunk as Claude streams.
+ * Resolves with the final assistant message id + accumulated text.
+ * Rejects with an error message string on any failure.
+ */
+export const sendCoachMessage = async (
+  message: string,
+  onDelta: (text: string) => void
+): Promise<{ replyId: string; replyText: string }> => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+  const url = `${supabaseUrl}/functions/v1/coach-message`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${anonKey}`,
+        apikey: anonKey,
+      },
+      body: JSON.stringify({
+        user_id: CURRENT_USER_ID,
+        message,
+      }),
+    });
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    console.warn("[qinoApi] sendCoachMessage network error:", reason);
+    throw new Error("Network error. Please try again.");
+  }
+
+  if (!res.ok) {
+    // Try to read JSON error body
+    let bodyMessage = "Request failed.";
+    try {
+      const errBody = await res.json();
+      if (typeof errBody?.message === "string") bodyMessage = errBody.message;
+      else if (typeof errBody?.error === "string") bodyMessage = errBody.error;
+    } catch {
+      // ignore
+    }
+    console.warn(
+      "[qinoApi] sendCoachMessage non-ok:",
+      res.status,
+      bodyMessage
+    );
+    throw new Error(bodyMessage);
+  }
+
+  if (!res.body) {
+    throw new Error("Empty response from Coach.");
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullText = "";
+  let replyId = "";
+  let errored: string | null = null;
+  let done = false;
+
+  while (!done) {
+    const { value, done: streamDone } = await reader.read();
+    if (streamDone) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    // SSE events are separated by blank lines
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+
+    for (const evtBlock of events) {
+      const lines = evtBlock.split("\n");
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const payload = trimmed.slice(5).trim();
+        if (!payload) continue;
+        let evt: { type?: string; text?: string; message_id?: string; message?: string };
+        try {
+          evt = JSON.parse(payload);
+        } catch {
+          continue;
+        }
+        if (evt.type === "delta" && typeof evt.text === "string") {
+          fullText += evt.text;
+          onDelta(evt.text);
+        } else if (evt.type === "done" && typeof evt.message_id === "string") {
+          replyId = evt.message_id;
+          done = true;
+        } else if (evt.type === "error") {
+          errored = evt.message ?? "Coach is briefly unavailable.";
+          done = true;
+        }
+      }
+    }
+  }
+
+  if (errored) throw new Error(errored);
+  if (!replyId) throw new Error("Coach response was incomplete.");
+  return { replyId, replyText: fullText };
+};
