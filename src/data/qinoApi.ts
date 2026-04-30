@@ -331,6 +331,30 @@ export interface PriorityItemRow {
 }
 
 // =====================================================================
+// SUBSCRIPTIONS / STRIPE (iteration 10)
+// =====================================================================
+
+export const startCheckout = async (plan: "monthly" | "annual"): Promise<void> => {
+  const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+    body: { plan },
+  });
+  if (error || !data?.checkout_url) {
+    throw new Error(error?.message ?? "Could not start checkout");
+  }
+  window.location.href = data.checkout_url as string;
+};
+
+export const openCustomerPortal = async (): Promise<void> => {
+  const { data, error } = await supabase.functions.invoke("create-portal-session", {
+    body: {},
+  });
+  if (error || !data?.portal_url) {
+    throw new Error(error?.message ?? "Could not open subscription manager");
+  }
+  window.location.href = data.portal_url as string;
+};
+
+// =====================================================================
 // COACH (iteration 8B)
 // =====================================================================
 
