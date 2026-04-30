@@ -12,6 +12,7 @@
 // =====================================================================
 
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
 import {
   mockUser,
   mockProtocol,
