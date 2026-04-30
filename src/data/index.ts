@@ -32,7 +32,6 @@ export { mockScanState, scanPrepChecklist } from "./mockScan";
 export {
   mockCoachState,
   coachSuggestedPrompts,
-  coachResponses,
   coachContext,
   QINO_COACH_FALLBACK_REPLY,
   QINO_SAFETY_NOTE,

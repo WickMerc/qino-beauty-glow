@@ -10,10 +10,8 @@
 import { useState } from "react";
 import {
   reportContent,
-  coachResponses,
   coachContext,
   QINO_SAFETY_NOTE,
-  QINO_COACH_FALLBACK_REPLY,
 } from "./data";
 import { useQinoData } from "./data/useQinoData";
 
@@ -132,11 +130,9 @@ export default function Dashboard() {
     return (
       <CoachScreen
         state={data.coach}
-        responses={coachResponses}
         contextEyebrow={coachContext.eyebrow}
         contextItems={coachContext.items}
         safetyNote={QINO_SAFETY_NOTE}
-        fallbackReply={QINO_COACH_FALLBACK_REPLY}
         subtitle="Grounded in your analysis, protocol, and goals."
       />
     );
