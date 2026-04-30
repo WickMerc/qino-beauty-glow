@@ -34,14 +34,16 @@ import { CoachScreen } from "./screens/CoachScreen";
 
 export default function Dashboard() {
   const { data, loading, reportIsReal } = useQinoData();
-  // Defense in depth: never render Dashboard with mock/missing report.
-  if (!reportIsReal || !data.report) return null;
-  const report = data.report;
   const [tab, setTab] = useState<TabId>("today");
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const overlays = useDashboardOverlays();
   const subscription = useSubscription();
   const navigate = useNavigate();
+
+  // Defense in depth: never render Dashboard with mock/missing report.
+  // IMPORTANT: must come AFTER all hooks above to satisfy Rules of Hooks.
+  if (!reportIsReal || !data.report) return null;
+  const report = data.report;
 
   const productCount =
     data.productStack.essentials.length + data.productStack.targeted.length;
