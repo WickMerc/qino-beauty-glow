@@ -16,7 +16,6 @@ import { useAuth } from "../hooks/useAuth";
 import {
   mockUser,
   mockProtocol,
-  mockAnalysisReport,
   mockProductStack,
   mockTreatmentPathways,
   mockProgress,
