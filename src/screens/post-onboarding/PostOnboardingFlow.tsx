@@ -116,10 +116,17 @@ export const PostOnboardingFlow = ({
     }
   };
 
-  // When processing finishes, refresh data so the report screen has real data
+  // When processing finishes, refresh data so the report screen has real data.
+  // If no real report is available (e.g. LLM timed out / failed), bounce back
+  // to the prescan dashboard instead of rendering a blank screen.
   const handleProcessingComplete = async () => {
     await qinoData.refresh();
-    setStage("report");
+    if (qinoData.reportIsReal) {
+      setStage("report");
+    } else {
+      setActiveScanSessionId(null);
+      setStage("prescan");
+    }
   };
 
   // Wire report card clicks to overlays
@@ -178,6 +185,17 @@ export const PostOnboardingFlow = ({
           {...reportContent}
           onContinue={() => setStage("complete")}
           onCardClick={handleReportCardClick}
+        />
+      )}
+
+      {/* Safety fallback: if we somehow land on "report" with no report data,
+          recover by sending the user back to prescan instead of showing a
+          blank screen. */}
+      {stage === "report" && !qinoData.data.report && (
+        <PreScanDashboard
+          user={user}
+          {...preScanContent}
+          onStartScan={() => setStage("scan")}
         />
       )}
 
