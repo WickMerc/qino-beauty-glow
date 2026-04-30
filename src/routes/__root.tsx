@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "QINO" },
+      { name: "description", content: "QINO helps you discover your most attractive natural self. Get a science backed facial analysis and personalized glow up plan." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "QINO" },
+      { property: "og:description", content: "QINO helps you discover your most attractive natural self. Get a science backed facial analysis and personalized glow up plan." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "QINO" },
+      { name: "twitter:description", content: "QINO helps you discover your most attractive natural self. Get a science backed facial analysis and personalized glow up plan." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6e0abec3-706a-42cb-8d34-4b717fab6377" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6e0abec3-706a-42cb-8d34-4b717fab6377" },
     ],
     links: [
       {
