@@ -39,7 +39,7 @@ import type {
 export interface QinoData {
   user: UserProfile;
   protocol: Protocol;
-  report: AnalysisReport;
+  report: AnalysisReport | null;
   productStack: ProductStack;
   pathways: TreatmentPathways;
   progress: ProgressState;
