@@ -16,14 +16,15 @@ import type { LucideIcon } from "lucide-react";
 import type { UserProfile } from "../types";
 import { palette, fonts, shadows } from "../theme";
 import { QinoMark } from "./primitives";
+import { AvatarMenu } from "./AvatarMenu";
 
 // ---------- Top Bar ----------
 export const TopBar = ({
   user,
-  onSettings,
   onBell,
 }: {
   user: UserProfile;
+  /** @deprecated kept for backwards compat — settings now lives in the avatar menu */
   onSettings?: () => void;
   onBell?: () => void;
 }) => (
@@ -43,21 +44,7 @@ export const TopBar = ({
       >
         <Bell size={15} color={palette.midnight} strokeWidth={1.6} />
       </button>
-      <button
-        onClick={onSettings}
-        className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${palette.softBlush} 0%, ${palette.softLavender} 100%)`,
-          border: `1px solid ${palette.hairline}`,
-        }}
-      >
-        <span
-          className="text-[12px]"
-          style={{ fontFamily: fonts.subtitle, fontWeight: 600, color: palette.midnight }}
-        >
-          {user.initial}
-        </span>
-      </button>
+      <AvatarMenu initial={user.initial} />
     </div>
   </header>
 );
