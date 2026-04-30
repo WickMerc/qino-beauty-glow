@@ -70,13 +70,16 @@ export default function App() {
     }
   }, [user, pendingAnswers, pendingStartScan]);
 
-  // After auth + initial data fetch, route to correct stage
+  // Routing decision runs only when stage is still the initial "onboarding"
+  // and there are no pending answers (which the other effect handles).
+  // This prevents the routing effect from racing with / overwriting the
+  // post-signup transition into "prescan".
   useEffect(() => {
     if (!user || !hasFetched || pendingAnswers) return;
+    if (stage !== "onboarding") return;
     if (reportIsReal) {
       setStage("complete");
-    } else if (stage === "onboarding") {
-      // Returning user with no report → start in prescan
+    } else {
       setStage("prescan");
       setPostEntryStage("prescan");
     }

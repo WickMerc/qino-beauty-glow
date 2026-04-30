@@ -12,6 +12,7 @@
 // =====================================================================
 
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
 import {
   mockUser,
   mockProtocol,
@@ -61,6 +62,7 @@ export interface QinoDataState {
 }
 
 export const useQinoData = (): QinoDataState => {
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile>(mockUser);
   const [report, setReport] = useState<AnalysisReport>(mockAnalysisReport);
   const [reportIsReal, setReportIsReal] = useState(false);
@@ -80,6 +82,8 @@ export const useQinoData = (): QinoDataState => {
         initial: realProfile.name.charAt(0).toUpperCase(),
         email: realProfile.email ?? undefined,
       });
+    } else {
+      setProfile(mockUser);
     }
 
     if (realReport) {
@@ -88,7 +92,7 @@ export const useQinoData = (): QinoDataState => {
       );
       setReportIsReal(true);
     } else {
-      // Keep mock report in state, mark as not-real
+      setReport(mockAnalysisReport);
       setReportIsReal(false);
     }
 
@@ -97,6 +101,17 @@ export const useQinoData = (): QinoDataState => {
   }, []);
 
   useEffect(() => {
+    if (!user) {
+      // Reset to mock fallbacks on sign-out / pre-auth
+      setProfile(mockUser);
+      setReport(mockAnalysisReport);
+      setReportIsReal(false);
+      setLoading(false);
+      setHasFetched(true);
+      return;
+    }
+    setHasFetched(false);
+    setLoading(true);
     let cancelled = false;
     (async () => {
       await load();
@@ -105,7 +120,7 @@ export const useQinoData = (): QinoDataState => {
     return () => {
       cancelled = true;
     };
-  }, [load]);
+  }, [user?.id, load]);
 
   return {
     data: {
