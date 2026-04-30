@@ -504,9 +504,28 @@ Deno.serve(async (req: Request) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const supabase = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },
   });
+
+  // ----- Manual JWT validation -----
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+  if (!token) {
+    return json(401, { error: "unauthorized" });
+  }
+  const userClient = createClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const { data: userData, error: userErr } = await userClient.auth.getUser();
+  if (userErr || !userData?.user) {
+    return json(401, { error: "unauthorized" });
+  }
+  const authUserId = userData.user.id;
 
   let scanSessionId: string | null = null;
   let analysisReportId: string | null = null;
@@ -537,6 +556,9 @@ Deno.serve(async (req: Request) => {
     if (sessionErr) throw sessionErr;
     if (!session) {
       return json(404, { error: "scan session not found" });
+    }
+    if (session.user_id !== authUserId) {
+      return json(403, { error: "forbidden" });
     }
 
     const userId: string = session.user_id;
