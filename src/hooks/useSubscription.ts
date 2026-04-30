@@ -1,33 +1,25 @@
 // =====================================================================
-// QINO — Subscription gating
-// Centralizes which features are locked for free users vs paid/trial.
-//
-// Free tier (no card) gets:
-//   - Full analysis report
-//   - Priority map
-//   - Feature group detail screens (read-only)
-//   - "What to ignore" list
-//
-// Locked behind 3-day trial (card required) / paid:
-//   - Daily protocol with checkable tasks
-//   - Product stack
-//   - Treatment pathways
-//   - Coach
-//   - Progress tracking + monthly photo uploads
-//   - Re-analysis
-//
-// BACKEND REPLACEMENT POINT:
-//   Replace `useSubscription()` with a hook that reads from /api/me
-//   → returns the user's real SubscriptionStatus.
+// QINO — useSubscription hook (iteration 10)
+// Reads live subscription state from public.subscriptions for the auth user.
+// Subscribes to realtime so trial/active flips show instantly.
+// Exposes gating helpers used across the app.
+// State changes only via Stripe webhooks — read-only from frontend.
 // =====================================================================
 
-import { useState, useCallback } from "react";
-import type { SubscriptionStatus } from "../types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { supabase } from "../integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
-/**
- * Feature ids used throughout the app for gating decisions.
- * Add new ids here when introducing a new gated feature.
- */
+export type SubscriptionStatusReal =
+  | "free"
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "incomplete"
+  | "incomplete_expired"
+  | "unpaid";
+
 export type GatedFeature =
   | "coach"
   | "daily_protocol"
@@ -37,67 +29,130 @@ export type GatedFeature =
   | "monthly_upload"
   | "reanalysis";
 
-/**
- * Tiers that have full access. Trial and active see no locks.
- * Cancelled retains access until period ends (handled at backend).
- */
-const PAID_STATUSES: SubscriptionStatus[] = ["trial", "active", "cancelled"];
+const PAID_STATUSES: SubscriptionStatusReal[] = ["trialing", "active"];
 
 export interface SubscriptionState {
-  status: SubscriptionStatus;
+  status: SubscriptionStatusReal;
   isPaid: boolean;
+  currentPlan: "monthly" | "annual" | null;
   trialEndsAt: string | null;
-
-  /** True if the feature is locked for the current user. */
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   isLocked: (feature: GatedFeature) => boolean;
-
-  /** True if the user can access the feature. */
   canAccess: (feature: GatedFeature) => boolean;
-
-  /** Programmatically flip status. Used by the prototype paywall stub. */
-  setStatus: (s: SubscriptionStatus) => void;
+  loading: boolean;
+  refresh: () => Promise<void>;
 }
 
-/**
- * Hook that exposes the current user's subscription state and gating helpers.
- * Mock-first: status is local React state. Real version reads from /api/me.
- */
+interface SubRow {
+  status: string;
+  current_plan: string | null;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+}
+
+const DEFAULT: Omit<SubscriptionState, "isLocked" | "canAccess" | "refresh"> = {
+  status: "free",
+  isPaid: false,
+  currentPlan: null,
+  trialEndsAt: null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  loading: true,
+};
+
+// Backwards-compat: hook accepted a single positional `initial` arg in the
+// old mock version. We accept and ignore it so existing call sites keep working.
 export const useSubscription = (
-  initial: SubscriptionStatus = "free",
-  initialTrialEnd: string | null = null
+  _initial?: unknown,
+  _initialTrialEnd?: unknown
 ): SubscriptionState => {
-  const [status, setStatus] = useState<SubscriptionStatus>(initial);
-  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(initialTrialEnd);
+  void _initial;
+  void _initialTrialEnd;
 
-  const isPaid = PAID_STATUSES.includes(status);
+  const { user } = useAuth();
+  const [state, setState] =
+    useState<Omit<SubscriptionState, "isLocked" | "canAccess" | "refresh">>(DEFAULT);
+  const userIdRef = useRef<string | null>(null);
 
-  const isLocked = useCallback(
-    (_feature: GatedFeature) => !isPaid,
-    [isPaid]
-  );
-  const canAccess = useCallback(
-    (_feature: GatedFeature) => isPaid,
-    [isPaid]
-  );
-
-  const setStatusWrapper = useCallback((s: SubscriptionStatus) => {
-    setStatus(s);
-    if (s === "trial") {
-      // Mock 3-day trial end
-      const ends = new Date();
-      ends.setDate(ends.getDate() + 3);
-      setTrialEndsAt(ends.toISOString());
-    } else if (s === "free" || s === "expired") {
-      setTrialEndsAt(null);
+  const applyRow = useCallback((row: SubRow | null) => {
+    if (!row) {
+      setState({ ...DEFAULT, loading: false });
+      return;
     }
+    const status = row.status as SubscriptionStatusReal;
+    setState({
+      status,
+      isPaid: PAID_STATUSES.includes(status),
+      currentPlan: (row.current_plan as "monthly" | "annual" | null) ?? null,
+      trialEndsAt: row.trial_ends_at,
+      currentPeriodEnd: row.current_period_end,
+      cancelAtPeriodEnd: !!row.cancel_at_period_end,
+      loading: false,
+    });
   }, []);
 
-  return {
-    status,
-    isPaid,
-    trialEndsAt,
-    isLocked,
-    canAccess,
-    setStatus: setStatusWrapper,
-  };
+  const refresh = useCallback(async () => {
+    const uid = userIdRef.current;
+    if (!uid) {
+      setState({ ...DEFAULT, loading: false });
+      return;
+    }
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select(
+        "status, current_plan, trial_ends_at, current_period_end, cancel_at_period_end"
+      )
+      .eq("user_id", uid)
+      .maybeSingle();
+    if (error) {
+      console.warn("[useSubscription] fetch error:", error.message);
+      setState({ ...DEFAULT, loading: false });
+      return;
+    }
+    applyRow((data as unknown as SubRow) ?? null);
+  }, [applyRow]);
+
+  useEffect(() => {
+    userIdRef.current = user?.id ?? null;
+    if (!user) {
+      setState({ ...DEFAULT, loading: false });
+      return;
+    }
+    setState((s) => ({ ...s, loading: true }));
+    void refresh();
+
+    const channel = supabase
+      .channel(`subscriptions:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "subscriptions",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const next = (payload.new as unknown as SubRow) ?? null;
+          if (next) applyRow(next);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refresh, applyRow]);
+
+  const isLocked = useCallback(
+    (_feature: GatedFeature) => !PAID_STATUSES.includes(state.status),
+    [state.status]
+  );
+  const canAccess = useCallback(
+    (_feature: GatedFeature) => PAID_STATUSES.includes(state.status),
+    [state.status]
+  );
+
+  return { ...state, isLocked, canAccess, refresh };
 };
