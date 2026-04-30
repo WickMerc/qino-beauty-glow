@@ -152,30 +152,43 @@ Deno.serve(async (req: Request) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
   const supabase = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },
   });
 
+  // ----- Manual JWT validation -----
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+  if (!token) {
+    return jsonResponse(401, { error: "unauthorized" });
+  }
+  const userClient = createClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const { data: userData, error: userErr } = await userClient.auth.getUser();
+  if (userErr || !userData?.user) {
+    return jsonResponse(401, { error: "unauthorized" });
+  }
+  const userId = userData.user.id;
+
   // ----- Parse + validate body -----
-  let body: { user_id?: unknown; message?: unknown };
+  let body: { message?: unknown };
   try {
     body = await req.json();
   } catch {
     return jsonResponse(400, { error: "invalid_json" });
   }
 
-  if (
-    typeof body?.user_id !== "string" ||
-    body.user_id.trim().length === 0 ||
-    typeof body?.message !== "string" ||
-    body.message.trim().length === 0
-  ) {
-    return jsonResponse(400, { error: "user_id and message required" });
+  if (typeof body?.message !== "string" || body.message.trim().length === 0) {
+    return jsonResponse(400, { error: "message required" });
   }
 
-  const userId = body.user_id.trim();
   const userMessage = body.message.trim().slice(0, 4000); // hard cap
 
   if (!anthropicKey) {
