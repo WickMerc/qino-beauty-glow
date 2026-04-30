@@ -10,6 +10,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mail, Settings as SettingsIcon, LogOut, Check } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { palette, fonts, shadows } from "../theme";
 import { useAuth, signOut } from "../hooks/useAuth";
 import { supabase } from "../integrations/supabase/client";
@@ -20,6 +21,7 @@ interface AvatarMenuProps {
 
 export const AvatarMenu = ({ initial }: AvatarMenuProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [resendState, setResendState] =
     useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -132,8 +134,10 @@ export const AvatarMenu = ({ initial }: AvatarMenuProps) => {
             <MenuItem
               icon={SettingsIcon}
               label="Settings"
-              hint="Coming soon"
-              disabled
+              onClick={() => {
+                setOpen(false);
+                navigate({ to: "/settings" });
+              }}
             />
             <MenuItem
               icon={LogOut}

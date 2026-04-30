@@ -8,6 +8,8 @@
 // =====================================================================
 
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { SubscriptionBanner } from "./components/SubscriptionBanner";
 import {
   reportContent,
   coachContext,
@@ -38,7 +40,8 @@ export default function Dashboard() {
   const [tab, setTab] = useState<TabId>("today");
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const overlays = useDashboardOverlays();
-  const subscription = useSubscription("free");
+  const subscription = useSubscription();
+  const navigate = useNavigate();
 
   const productCount =
     data.productStack.essentials.length + data.productStack.targeted.length;
@@ -52,8 +55,8 @@ export default function Dashboard() {
     { id: "skin", label: "Skin close-up", uploaded: false, accentKey: "softBlush" },
   ];
 
-  // Gating helpers — used to swap real content for the trial offer
-  const startTrial = () => subscription.setStatus("trial");
+  // Gating helpers — route to /pricing instead of locally flipping state.
+  const startTrial = () => navigate({ to: "/pricing" });
 
   // Tab access — only Today and Analysis fully free.
   // Locked tabs show TrialOfferCard "screen" variant.
@@ -173,6 +176,7 @@ export default function Dashboard() {
       `}</style>
 
       <div className="max-w-[440px] mx-auto min-h-screen pb-24 relative">
+        <SubscriptionBanner />
         <TopBar user={data.user} />
 
         {tab === "today" && (
