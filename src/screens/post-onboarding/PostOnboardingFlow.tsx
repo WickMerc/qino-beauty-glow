@@ -170,7 +170,7 @@ export const PostOnboardingFlow = ({
         />
       )}
 
-      {stage === "report" && (
+      {stage === "report" && qinoData.data.report && (
         <AnalysisReportScreen
           user={user}
           report={qinoData.data.report}
