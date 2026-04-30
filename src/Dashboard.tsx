@@ -31,7 +31,10 @@ import { ProgressScreen } from "./screens/ProgressScreen";
 import { CoachScreen } from "./screens/CoachScreen";
 
 export default function Dashboard() {
-  const { data, loading } = useQinoData();
+  const { data, loading, reportIsReal } = useQinoData();
+  // Defense in depth: never render Dashboard with mock/missing report.
+  if (!reportIsReal || !data.report) return null;
+  const report = data.report;
   const [tab, setTab] = useState<TabId>("today");
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const overlays = useDashboardOverlays();
@@ -176,7 +179,7 @@ export default function Dashboard() {
           <TodayScreen
             user={data.user}
             protocol={data.protocol}
-            report={data.report}
+            report={report}
             todayFocusLine={data.todayFocusLine}
             comingUp={data.comingUp}
             greetingPrefix={data.greetingPrefix}
@@ -190,7 +193,7 @@ export default function Dashboard() {
 
         {tab === "analysis" && (
           <AnalysisScreen
-            report={data.report}
+            report={report}
             onOpenFeatureGroup={overlays.openFeatureGroup}
             onOpenFullReport={overlays.openFullReport}
           />

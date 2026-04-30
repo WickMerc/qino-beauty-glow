@@ -85,6 +85,17 @@ export default function App() {
     }
   }, [user, hasFetched, reportIsReal, pendingAnswers, stage]);
 
+  // Defense in depth: if reportIsReal flips to false at any point while we're
+  // sitting on "complete", bounce back to prescan so we never render Dashboard
+  // without a real report.
+  useEffect(() => {
+    if (!user || !hasFetched) return;
+    if (stage === "complete" && !reportIsReal) {
+      setStage("prescan");
+      setPostEntryStage("prescan");
+    }
+  }, [user, hasFetched, reportIsReal, stage]);
+
   const wrap = (children: React.ReactNode) => (
     <div
       className="min-h-screen w-full"
@@ -137,13 +148,10 @@ export default function App() {
 
   return wrap(
     <>
-      {(stage === "onboarding" || stage === "prescan" ||
-        stage === "scanning" ||
-        stage === "processing" ||
-        stage === "report") && (
+      {(!reportIsReal || stage !== "complete") && (
         <PostOnboardingFlow
           user={data.user}
-          initialStage={postEntryStage}
+          initialStage={stage === "complete" ? "prescan" : postEntryStage}
           onComplete={async () => {
             await refresh();
             setStage("complete");
@@ -151,7 +159,7 @@ export default function App() {
         />
       )}
 
-      {stage === "complete" && <Dashboard />}
+      {reportIsReal && stage === "complete" && <Dashboard />}
     </>
   );
 }

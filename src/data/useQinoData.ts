@@ -16,7 +16,6 @@ import { useAuth } from "../hooks/useAuth";
 import {
   mockUser,
   mockProtocol,
-  mockAnalysisReport,
   mockProductStack,
   mockTreatmentPathways,
   mockProgress,
@@ -40,7 +39,7 @@ import type {
 export interface QinoData {
   user: UserProfile;
   protocol: Protocol;
-  report: AnalysisReport;
+  report: AnalysisReport | null;
   productStack: ProductStack;
   pathways: TreatmentPathways;
   progress: ProgressState;
@@ -64,7 +63,7 @@ export interface QinoDataState {
 export const useQinoData = (): QinoDataState => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile>(mockUser);
-  const [report, setReport] = useState<AnalysisReport>(mockAnalysisReport);
+  const [report, setReport] = useState<AnalysisReport | null>(null);
   const [reportIsReal, setReportIsReal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
@@ -92,7 +91,7 @@ export const useQinoData = (): QinoDataState => {
       );
       setReportIsReal(true);
     } else {
-      setReport(mockAnalysisReport);
+      setReport(null);
       setReportIsReal(false);
     }
 
@@ -104,7 +103,7 @@ export const useQinoData = (): QinoDataState => {
     if (!user) {
       // Reset to mock fallbacks on sign-out / pre-auth
       setProfile(mockUser);
-      setReport(mockAnalysisReport);
+      setReport(null);
       setReportIsReal(false);
       setLoading(false);
       setHasFetched(true);
