@@ -68,13 +68,6 @@ export type Database = {
             referencedRelation: "scan_sessions"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "analysis_reports_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       coach_messages: {
@@ -99,15 +92,7 @@ export type Database = {
           role?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "coach_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       feature_findings: {
         Row: {
@@ -199,15 +184,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_answers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       priority_items: {
         Row: {
@@ -247,7 +224,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
-          email: string | null
+          email: string
           id: string
           name: string
           updated_at: string
@@ -255,7 +232,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          email?: string | null
+          email: string
           id?: string
           name: string
           updated_at?: string
@@ -263,7 +240,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          email?: string | null
+          email?: string
           id?: string
           name?: string
           updated_at?: string
@@ -307,13 +284,6 @@ export type Database = {
             referencedRelation: "scan_sessions"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "scan_photos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       scan_sessions: {
@@ -338,15 +308,7 @@ export type Database = {
           status?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "scan_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
