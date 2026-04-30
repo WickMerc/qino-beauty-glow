@@ -82,8 +82,10 @@ export const ProcessingDashboard = ({
     let cancelled = false;
     (async () => {
       const result = await pollAnalysisStatus(scanSessionId, {
-        intervalMs: 1500,
-        timeoutMs: 60_000,
+        intervalMs: 2000,
+        // Claude Sonnet generation can take ~2.5 minutes including a retry.
+        // Poll long enough to cover the worst case before showing failure UI.
+        timeoutMs: 240_000,
       });
       if (cancelled) return;
       setReportStatus(result === "complete" ? "complete" : result);
