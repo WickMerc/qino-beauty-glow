@@ -70,18 +70,16 @@ export default function App() {
     }
   }, [user, pendingAnswers, pendingStartScan]);
 
-  // Routing for RETURNING users only: authenticated, no pending answers,
-  // data hydrated, and a real report exists → go to Dashboard.
-  // New signups are driven exclusively by the pending-answers effect above.
+  // Routing decision runs only when stage is still the initial "onboarding"
+  // and there are no pending answers (which the other effect handles).
+  // This prevents the routing effect from racing with / overwriting the
+  // post-signup transition into "prescan".
   useEffect(() => {
-    if (!user || !hasFetched || pendingAnswers || persistedRef.current && stage !== "onboarding") {
-      // persisted but stage already moved — let user navigate normally
-    }
     if (!user || !hasFetched || pendingAnswers) return;
-    if (reportIsReal && stage === "onboarding") {
+    if (stage !== "onboarding") return;
+    if (reportIsReal) {
       setStage("complete");
-    } else if (!reportIsReal && stage === "onboarding") {
-      // Returning user with no report → prescan
+    } else {
       setStage("prescan");
       setPostEntryStage("prescan");
     }
