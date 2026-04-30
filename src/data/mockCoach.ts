@@ -1,72 +1,50 @@
 // =====================================================================
-// MOCK DATA ONLY
-// This will be replaced by Supabase/API data during backend integration.
-// Backend replacement point:
-//   POST /api/coach/messages   → send user message, receive QINO reply
-//   GET  /api/me/coach/history → CoachMessage[]
+// QINO — Coach mock data
 //
-// Each suggested prompt has a `responseKey` matching a real grounded
-// reply in `coachResponses` below. When backend lands, this mock library
-// is replaced by an LLM grounded in the user's report + protocol.
+// Iteration 8B: real Claude Haiku-powered Coach now lives behind the
+// `coach-message` Edge Function. The canned `coachResponses` map and
+// `responseKey` plumbing have been removed.
+//
+// What stays in this file:
+//   - `coachSuggestedPrompts`     → the 4 starter chips shown in the UI
+//   - `mockCoachState`            → seed conversation for empty-state users
+//                                   (used until they send their first
+//                                    message and history is hydrated)
+//   - `coachContext`              → the "What I know about you" card
+//   - `QINO_SAFETY_NOTE`          → the safety footer string
+//   - `QINO_COACH_FALLBACK_REPLY` → DEPRECATED, no longer rendered.
+//                                   Kept temporarily to avoid breaking
+//                                   any stray imports; will be removed.
 // =====================================================================
 
 import type { CoachState, CoachPrompt } from "../types";
 
-export interface CoachPromptWithResponse extends CoachPrompt {
-  /** Key into `coachResponses` for the canned grounded reply. */
-  responseKey: string;
-}
-
-export const coachSuggestedPrompts: CoachPromptWithResponse[] = [
+export const coachSuggestedPrompts: CoachPrompt[] = [
   {
     id: "prompt_priority",
     text: "Why is lower-face definition my priority?",
     iconKey: "sparkles",
     accentKey: "softBlush",
-    responseKey: "priority",
   },
   {
     id: "prompt_uneven_skin",
     text: "What products should I use for uneven skin?",
     iconKey: "layers",
     accentKey: "softPeach",
-    responseKey: "uneven_skin",
   },
   {
     id: "prompt_clinic",
     text: "What clinic treatments are worth discussing?",
     iconKey: "stethoscope",
     accentKey: "softLavender",
-    responseKey: "clinic",
   },
   {
     id: "prompt_ignore",
     text: "What should I ignore for now?",
     iconKey: "minus",
     accentKey: "softSage",
-    responseKey: "ignore",
   },
 ];
-
-/**
- * Canned grounded responses, keyed by `responseKey` on the prompt above.
- * Written to feel like the coach is reading the user's actual report.
- * When real LLM lands, these are replaced by generation grounded in
- * the user's analysis + protocol + comfort level + progress.
- */
-export const coachResponses: Record<string, string> = {
-  priority:
-    "Your scan showed strong symmetry and structure, but lower-face definition came up as the highest-impact lever. Sharpening the jaw and submental area will visibly change how your whole face reads — more than any skin or grooming work alone. That's why it leads your priority map.",
-
-  uneven_skin:
-    "Your skin came back as low-oil, slightly textured, slightly uneven. Start with daily SPF (highest leverage), a non-stripping cleanser, and a hydrating moisturizer. Add a texture serum at week two if your barrier is calm. Skip aggressive exfoliation for now — it can make uneven skin look worse before it looks better.",
-
-  clinic:
-    "Based on your comfort level (open to clinics), three are worth discussing with a qualified professional: a chemical peel for skin evenness, microneedling for texture, and a teeth-whitening consultation to polish your smile frame. None of these are required — they're potential pathways if you want to compound on top of your home routine.",
-
-  ignore:
-    "For the next 30 days, ignore: advanced facial exercises, expensive procedures, minor ear concerns, small symmetry details, and overly complex routines. None of these would move the needle on your top priorities right now. Revisit after re-analysis if you want to.",
-};
 
 export const mockCoachState: CoachState = {
   messages: [
@@ -109,6 +87,11 @@ export const coachContext = {
   ],
 };
 
+/**
+ * @deprecated No longer rendered. The real Coach streams replies from
+ * Claude via the `coach-message` Edge Function. Will be removed in a
+ * future cleanup once we confirm no other module imports it.
+ */
 export const QINO_COACH_FALLBACK_REPLY =
   "I'd answer this with full grounding when QINO is connected to your analysis. For now, try one of the suggested prompts above — those are wired to real responses.";
 

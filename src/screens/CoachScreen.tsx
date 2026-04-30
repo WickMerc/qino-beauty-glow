@@ -1,11 +1,11 @@
 // =====================================================================
-// QINO — Coach Screen
-// Grounded chat surface. Suggested prompts return real canned replies
-// keyed off the user's analysis. Free-text inputs return a fallback
-// (real LLM lands in iteration 8).
+// QINO — Coach Screen (iteration 8B)
+// Real Claude Haiku-backed chat. Suggested prompts and free text both
+// go through `sendCoachMessage`, which streams the reply back.
+// History is persisted in coach_messages and rehydrated on mount.
 // =====================================================================
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Send, Sparkle } from "lucide-react";
 import type { CoachState } from "../types";
 import { palette, fonts, shadows } from "../theme";
@@ -17,6 +17,7 @@ import {
   resolveAccent,
 } from "../components/primitives";
 import { getIcon } from "../iconRegistry";
+import { fetchCoachHistory, sendCoachMessage } from "../data/qinoApi";
 
 interface CoachContextItem {
   iconKey: string;
@@ -27,46 +28,102 @@ interface CoachContextItem {
 
 interface CoachScreenProps {
   state: CoachState;
-  /** Map of responseKey → grounded response text. */
-  responses: Record<string, string>;
   /** "What I know about you" context items. */
   contextEyebrow: string;
   contextItems: CoachContextItem[];
   safetyNote: string;
-  fallbackReply: string;
   subtitle: string;
+}
+
+interface UiMessage {
+  id: string;
+  role: "user" | "qino";
+  text: string;
+  /** True while assistant text is still streaming in. */
+  generating?: boolean;
 }
 
 export const CoachScreen = ({
   state,
-  responses,
   contextEyebrow,
   contextItems,
   safetyNote,
-  fallbackReply,
   subtitle,
 }: CoachScreenProps) => {
-  const [messages, setMessages] = useState(state.messages);
+  const [messages, setMessages] = useState<UiMessage[]>(
+    state.messages.map((m) => ({ id: m.id, role: m.role, text: m.text }))
+  );
   const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const hydratedRef = useRef(false);
 
-  /**
-   * If the prompt has a `responseKey` and we have a canned response for it,
-   * return that; otherwise fall back to the generic prototype reply.
-   */
-  const replyFor = (text: string, responseKey?: string): string => {
-    if (responseKey && responses[responseKey]) return responses[responseKey];
-    return fallbackReply;
-  };
+  // ----- Load persisted history on mount -----
+  useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+    let cancelled = false;
+    (async () => {
+      const history = await fetchCoachHistory(50);
+      if (cancelled) return;
+      if (history.length > 0) {
+        setMessages(
+          history.map((h) => ({ id: h.id, role: h.role, text: h.content }))
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const sendPrompt = (text: string, responseKey?: string) => {
-    if (!text.trim()) return;
-    const reply = replyFor(text, responseKey);
+  const sendPrompt = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || sending) return;
+
+    const userMsgId = `u_${Date.now()}`;
+    const placeholderId = `q_${Date.now() + 1}`;
+
     setMessages((m) => [
       ...m,
-      { id: `u_${Date.now()}`, role: "user", text },
-      { id: `q_${Date.now() + 1}`, role: "qino", text: reply },
+      { id: userMsgId, role: "user", text: trimmed },
+      { id: placeholderId, role: "qino", text: "", generating: true },
     ]);
     setInput("");
+    setSending(true);
+
+    try {
+      const { replyId } = await sendCoachMessage(trimmed, (delta) => {
+        setMessages((m) =>
+          m.map((msg) =>
+            msg.id === placeholderId
+              ? { ...msg, text: msg.text + delta }
+              : msg
+          )
+        );
+      });
+      // Swap placeholder id for the persisted reply id; clear generating.
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.id === placeholderId
+            ? { ...msg, id: replyId, generating: false }
+            : msg
+        )
+      );
+    } catch {
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.id === placeholderId
+            ? {
+                ...msg,
+                text: "Sorry — try again in a moment.",
+                generating: false,
+              }
+            : msg
+        )
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -149,13 +206,12 @@ export const CoachScreen = ({
           {state.suggestedPrompts.map((p) => {
             const Icon = getIcon(p.iconKey);
             const bg = resolveAccent(p.accentKey);
-            // CoachPrompt may carry an optional responseKey from data
-            const responseKey = (p as { responseKey?: string }).responseKey;
             return (
               <button
                 key={p.id}
-                onClick={() => sendPrompt(p.text, responseKey)}
-                className="rounded-[20px] p-4 text-left active:scale-[0.98] transition-transform"
+                onClick={() => sendPrompt(p.text)}
+                disabled={sending}
+                className="rounded-[20px] p-4 text-left active:scale-[0.98] transition-transform disabled:opacity-50"
                 style={{
                   background: bg,
                   border: `1px solid ${palette.hairline}`,
@@ -204,9 +260,13 @@ export const CoachScreen = ({
                   <QinoMark size={14} />
                 </div>
               )}
-              <p className="text-[13.5px] leading-[1.5]" style={{ fontWeight: 400 }}>
-                {m.text}
-              </p>
+              {m.role === "qino" && m.generating && m.text.length === 0 ? (
+                <TypingDots />
+              ) : (
+                <p className="text-[13.5px] leading-[1.5]" style={{ fontWeight: 400 }}>
+                  {m.text}
+                </p>
+              )}
             </div>
           </div>
         ))}
@@ -243,13 +303,15 @@ export const CoachScreen = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendPrompt(input)}
+            disabled={sending}
             placeholder="Ask QINO..."
-            className="flex-1 text-[13.5px] bg-transparent outline-none"
+            className="flex-1 text-[13.5px] bg-transparent outline-none disabled:opacity-50"
             style={{ fontFamily: fonts.body, fontWeight: 400, color: palette.ink }}
           />
           <button
             onClick={() => sendPrompt(input)}
-            className="w-9 h-9 rounded-full flex items-center justify-center"
+            disabled={sending}
+            className="w-9 h-9 rounded-full flex items-center justify-center disabled:opacity-50"
             style={{ background: palette.midnight }}
           >
             <Send size={13} color={palette.mist} strokeWidth={1.8} />
@@ -259,3 +321,25 @@ export const CoachScreen = ({
     </div>
   );
 };
+
+/** Three subtly animated dots used inside the assistant bubble while streaming. */
+const TypingDots = () => (
+  <div className="flex items-center gap-1 py-1">
+    <style>{`
+      @keyframes qinoTypingDot {
+        0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+        40% { opacity: 1; transform: translateY(-2px); }
+      }
+    `}</style>
+    {[0, 1, 2].map((i) => (
+      <span
+        key={i}
+        className="block w-1.5 h-1.5 rounded-full"
+        style={{
+          background: palette.textMuted,
+          animation: `qinoTypingDot 1.2s ${i * 0.18}s infinite ease-in-out`,
+        }}
+      />
+    ))}
+  </div>
+);
