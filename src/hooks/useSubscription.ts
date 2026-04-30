@@ -72,6 +72,7 @@ export const useSubscription = (
   void _initialTrialEnd;
 
   const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [state, setState] =
     useState<Omit<SubscriptionState, "isLocked" | "canAccess" | "refresh">>(DEFAULT);
   const userIdRef = useRef<string | null>(null);
@@ -115,23 +116,24 @@ export const useSubscription = (
   }, [applyRow]);
 
   useEffect(() => {
-    userIdRef.current = user?.id ?? null;
-    if (!user) {
+    userIdRef.current = userId;
+    if (!userId) {
       setState({ ...DEFAULT, loading: false });
       return;
     }
     setState((s) => ({ ...s, loading: true }));
     void refresh();
 
+    const channelName = `subscriptions:${userId}:${crypto.randomUUID()}`;
     const channel = supabase
-      .channel(`subscriptions:${user.id}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "subscriptions",
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           const next = (payload.new as unknown as SubRow) ?? null;
@@ -143,7 +145,7 @@ export const useSubscription = (
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, refresh, applyRow]);
+  }, [userId, refresh, applyRow]);
 
   const isLocked = useCallback(
     (_feature: GatedFeature) => !PAID_STATUSES.includes(state.status),
