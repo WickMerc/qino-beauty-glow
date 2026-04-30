@@ -180,7 +180,7 @@ export const SubscriptionBanner = () => {
     const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
     const dayNum = Math.min(totalDays, Math.max(1, totalDays - daysLeft + 1));
 
-    let bg = palette.softSage;
+    let bg: string = palette.softSage;
     let headline = "Welcome to QINO Premium";
     let sub2 = `Your trial is active. Day ${dayNum} of ${totalDays}.`;
 
