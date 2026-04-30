@@ -66,7 +66,7 @@ const DEFAULT: Omit<SubscriptionState, "isLocked" | "canAccess" | "refresh"> = {
 // old mock version. We accept and ignore it so existing call sites keep working.
 export const useSubscription = (
   _initial?: unknown,
-  _initialTrialEnd?: unknown
+  _initialTrialEnd?: unknown,
 ): SubscriptionState => {
   void _initial;
   void _initialTrialEnd;
@@ -102,9 +102,7 @@ export const useSubscription = (
     }
     const { data, error } = await supabase
       .from("subscriptions")
-      .select(
-        "status, current_plan, trial_ends_at, current_period_end, cancel_at_period_end"
-      )
+      .select("status, current_plan, trial_ends_at, current_period_end, cancel_at_period_end")
       .eq("user_id", uid)
       .maybeSingle();
     if (error) {
@@ -138,7 +136,7 @@ export const useSubscription = (
         (payload) => {
           const next = (payload.new as unknown as SubRow) ?? null;
           if (next) applyRow(next);
-        }
+        },
       )
       .subscribe();
 
@@ -149,11 +147,11 @@ export const useSubscription = (
 
   const isLocked = useCallback(
     (_feature: GatedFeature) => !PAID_STATUSES.includes(state.status),
-    [state.status]
+    [state.status],
   );
   const canAccess = useCallback(
     (_feature: GatedFeature) => PAID_STATUSES.includes(state.status),
-    [state.status]
+    [state.status],
   );
 
   return { ...state, isLocked, canAccess, refresh };
