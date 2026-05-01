@@ -5,10 +5,12 @@
 // =====================================================================
 
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "../../integrations/supabase/client";
 import { lovable } from "../../integrations/lovable";
 import { palette, fonts } from "../../theme";
 import { QinoMark } from "../../components/primitives";
+import { track } from "../../lib/analytics";
 
 type Mode = "signup" | "login" | "forgot";
 
