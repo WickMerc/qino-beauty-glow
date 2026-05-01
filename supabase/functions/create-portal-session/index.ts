@@ -91,6 +91,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("[create-portal-session] stripe portal error:", reason);
+    try { Sentry.captureException(err, { tags: { function: "create-portal-session" }, user: { id: user.id } }); } catch {}
     return jsonResponse(500, { error: "stripe_error" });
   }
 });

@@ -432,6 +432,7 @@ Deno.serve(async (req: Request) => {
       } catch (err) {
         const reason = err instanceof Error ? err.message : String(err);
         console.error("[coach-message] stream error:", reason);
+        try { Sentry.captureException(err, { tags: { function: "coach-message" }, user: { id: userId } }); } catch {}
         try {
           controller.enqueue(
             encoder.encode(
