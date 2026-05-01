@@ -8,11 +8,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 // @ts-ignore - npm import via Deno
 import Stripe from "npm:stripe@14";
+// @ts-ignore - npm import via Deno
+import * as Sentry from "npm:@sentry/deno";
 
 declare const Deno: {
   env: { get(key: string): string | undefined };
   serve(handler: (req: Request) => Response | Promise<Response>): void;
 };
+
+const SENTRY_DSN_VAL = Deno.env.get("SENTRY_DSN");
+if (SENTRY_DSN_VAL) {
+  try {
+    Sentry.init({ dsn: SENTRY_DSN_VAL, tracesSampleRate: 0.1, environment: "edge-function" });
+  } catch (e) {
+    console.warn("[create-checkout-session] Sentry init failed:", e);
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -117,6 +128,7 @@ Deno.serve(async (req: Request) => {
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       console.error("[create-checkout-session] stripe customer create error:", reason);
+      try { Sentry.captureException(err, { tags: { function: "create-checkout-session" }, user: { id: user.id } }); } catch {}
       return jsonResponse(500, { error: "stripe_error" });
     }
   }
@@ -143,6 +155,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("[create-checkout-session] stripe checkout error:", reason);
+    try { Sentry.captureException(err, { tags: { function: "create-checkout-session" }, user: { id: user.id } }); } catch {}
     return jsonResponse(500, { error: "stripe_error" });
   }
 });

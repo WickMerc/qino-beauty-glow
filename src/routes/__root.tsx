@@ -1,6 +1,9 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import * as Sentry from "@sentry/react";
 
 import appCss from "../styles.css?url";
+import { ObservabilityBootstrap } from "../lib/observability";
+import { SentryErrorFallback } from "../components/SentryErrorFallback";
 
 function NotFoundComponent() {
   return (
@@ -69,5 +72,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <Sentry.ErrorBoundary
+      fallback={({ error, resetError }) => (
+        <SentryErrorFallback error={error} resetError={resetError} />
+      )}
+    >
+      <ObservabilityBootstrap />
+      <Outlet />
+    </Sentry.ErrorBoundary>
+  );
 }
