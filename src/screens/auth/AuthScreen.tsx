@@ -221,6 +221,23 @@ export const AuthScreen = () => {
             </button>
           )}
         </div>
+
+        {mode === "signup" && (
+          <p
+            className="mt-5 text-center text-[11.5px] leading-relaxed px-4"
+            style={{ color: palette.textDim, fontFamily: fonts.body }}
+          >
+            By creating an account, you agree to our{" "}
+            <Link to="/terms" className="underline" style={{ color: palette.midnight }}>
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="underline" style={{ color: palette.midnight }}>
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        )}
       </div>
     </div>
   );
