@@ -70,16 +70,16 @@ export default function App() {
     }
   }, [user, pendingAnswers, pendingStartScan]);
 
-  // Routing decision runs only when stage is still the initial "onboarding"
-  // and there are no pending answers (which the other effect handles).
-  // This prevents the routing effect from racing with / overwriting the
-  // post-signup transition into "prescan".
+  // Routing decision: if the user has a real report, ALWAYS land on the
+  // Dashboard. This runs from any stage so post-checkout returns from
+  // /subscription/success → "/" can't accidentally drop us back to scan.
   useEffect(() => {
     if (!user || !hasFetched || pendingAnswers) return;
-    if (stage !== "onboarding") return;
-    if (reportIsReal) {
+    if (reportIsReal && stage !== "complete") {
       setStage("complete");
-    } else {
+      return;
+    }
+    if (stage === "onboarding" && !reportIsReal) {
       setStage("prescan");
       setPostEntryStage("prescan");
     }
