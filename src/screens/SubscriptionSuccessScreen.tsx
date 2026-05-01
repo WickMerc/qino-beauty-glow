@@ -9,6 +9,7 @@ import { Check, Loader2 } from "lucide-react";
 import { palette, fonts, shadows } from "../theme";
 import { Eyebrow, QinoMark } from "../components/primitives";
 import { useSubscription } from "../hooks/useSubscription";
+import { track } from "../lib/analytics";
 
 export const SubscriptionSuccessScreen = () => {
   const navigate = useNavigate();

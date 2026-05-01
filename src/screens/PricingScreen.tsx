@@ -12,6 +12,7 @@ import { palette, fonts, shadows } from "../theme";
 import { Eyebrow, QinoMark } from "../components/primitives";
 import { useSubscription } from "../hooks/useSubscription";
 import { openCustomerPortal, startCheckout } from "../data/qinoApi";
+import { track } from "../lib/analytics";
 
 const PAID_FEATURES = [
   { label: "Daily protocol with checkable tasks", accent: palette.softSage },
@@ -68,10 +69,13 @@ export const PricingScreen = () => {
     setBusy(selected);
     setErr(null);
     try {
+      track("checkout_started", { plan: selected });
       await startCheckout(selected);
     } catch (e) {
       setBusy(null);
-      setErr(e instanceof Error ? e.message : "Could not start checkout");
+      const msg = e instanceof Error ? e.message : "Could not start checkout";
+      track("checkout_failed", { plan: selected, reason: msg });
+      setErr(msg);
     }
   };
 
@@ -79,6 +83,7 @@ export const PricingScreen = () => {
     setBusy("portal");
     setErr(null);
     try {
+      track("billing_portal_opened");
       await openCustomerPortal();
     } catch (e) {
       setBusy(null);
