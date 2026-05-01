@@ -13,6 +13,7 @@ import { saveOnboardingAnswers } from "./data/qinoApi";
 import { useQinoData } from "./data/useQinoData";
 import { useAuth } from "./hooks/useAuth";
 import { palette, fonts } from "./theme";
+import { track } from "./lib/analytics";
 
 import { OnboardingFlow } from "./screens/onboarding/OnboardingFlow";
 import { PostOnboardingFlow, type PostOnboardingStage } from "./screens/post-onboarding/PostOnboardingFlow";
@@ -76,6 +77,7 @@ export default function App() {
   useEffect(() => {
     if (!user || !hasFetched || pendingAnswers) return;
     if (reportIsReal && stage !== "complete") {
+      track("report_ready_landed");
       setStage("complete");
       return;
     }

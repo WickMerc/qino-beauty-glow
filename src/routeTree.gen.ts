@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsIncludedRouteImport } from './routes/whats-included'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionSuccessRouteImport } from './routes/subscription.success'
@@ -19,6 +21,11 @@ import { Route as SubscriptionSuccessRouteImport } from './routes/subscription.s
 const WhatsIncludedRoute = WhatsIncludedRouteImport.update({
   id: '/whats-included',
   path: '/whats-included',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -29,6 +36,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -50,16 +62,20 @@ const SubscriptionSuccessRoute = SubscriptionSuccessRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/whats-included': typeof WhatsIncludedRoute
   '/subscription/success': typeof SubscriptionSuccessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/whats-included': typeof WhatsIncludedRoute
   '/subscription/success': typeof SubscriptionSuccessRoute
 }
@@ -67,8 +83,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/whats-included': typeof WhatsIncludedRoute
   '/subscription/success': typeof SubscriptionSuccessRoute
 }
@@ -77,24 +95,30 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/pricing'
+    | '/privacy'
     | '/reset-password'
     | '/settings'
+    | '/terms'
     | '/whats-included'
     | '/subscription/success'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/pricing'
+    | '/privacy'
     | '/reset-password'
     | '/settings'
+    | '/terms'
     | '/whats-included'
     | '/subscription/success'
   id:
     | '__root__'
     | '/'
     | '/pricing'
+    | '/privacy'
     | '/reset-password'
     | '/settings'
+    | '/terms'
     | '/whats-included'
     | '/subscription/success'
   fileRoutesById: FileRoutesById
@@ -102,8 +126,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
+  TermsRoute: typeof TermsRoute
   WhatsIncludedRoute: typeof WhatsIncludedRoute
   SubscriptionSuccessRoute: typeof SubscriptionSuccessRoute
 }
@@ -115,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/whats-included'
       fullPath: '/whats-included'
       preLoaderRoute: typeof WhatsIncludedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -129,6 +162,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -158,8 +198,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
+  TermsRoute: TermsRoute,
   WhatsIncludedRoute: WhatsIncludedRoute,
   SubscriptionSuccessRoute: SubscriptionSuccessRoute,
 }

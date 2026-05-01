@@ -4,6 +4,7 @@
 // =====================================================================
 
 import { Target, Sparkles, Camera } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { palette, fonts, shadows } from "../../theme";
 import { QinoMark } from "../../components/primitives";
 import { Eyebrow, Footer } from "./_primitives";
@@ -118,6 +119,21 @@ export const StepWelcome = ({ content, onContinue }: StepWelcomeProps) => (
       style={{ fontFamily: fonts.body, fontWeight: 400, color: palette.textDim }}
     >
       {content.safetyDisclaimer}
+    </p>
+
+    <p
+      className="mt-3 text-[11px] leading-relaxed text-center px-4"
+      style={{ fontFamily: fonts.body, fontWeight: 400, color: palette.textDim }}
+    >
+      By continuing, you agree to our{" "}
+      <Link to="/terms" className="underline" style={{ color: palette.midnight }}>
+        Terms
+      </Link>{" "}
+      and{" "}
+      <Link to="/privacy" className="underline" style={{ color: palette.midnight }}>
+        Privacy Policy
+      </Link>
+      .
     </p>
 
     <Footer onContinue={onContinue} label={content.ctaLabel} />
