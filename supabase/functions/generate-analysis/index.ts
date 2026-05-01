@@ -6,12 +6,41 @@
 
 // @ts-ignore - Deno remote import
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+// @ts-ignore - npm import via Deno
+import * as Sentry from "npm:@sentry/deno";
 
 // Deno globals (declared for type safety in non-Deno tooling)
 declare const Deno: {
   env: { get(key: string): string | undefined };
   serve(handler: (req: Request) => Response | Promise<Response>): void;
 };
+
+const SENTRY_DSN = Deno.env.get("SENTRY_DSN");
+if (SENTRY_DSN) {
+  try {
+    Sentry.init({ dsn: SENTRY_DSN, tracesSampleRate: 0.1, environment: "edge-function" });
+  } catch (e) {
+    console.warn("[generate-analysis] Sentry init failed:", e);
+  }
+}
+
+async function fireWelcomeEmail(supabaseUrl: string, serviceKey: string, userId: string) {
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ template: "welcome", to_user_id: userId }),
+    });
+    if (!res.ok) {
+      console.warn("[generate-analysis] welcome email non-ok:", res.status);
+    }
+  } catch (e) {
+    console.warn("[generate-analysis] welcome email failed:", e);
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
