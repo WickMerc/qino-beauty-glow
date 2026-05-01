@@ -9,6 +9,75 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 // @ts-ignore - npm import via Deno
 import Stripe from "npm:stripe@14";
+// @ts-ignore - npm import via Deno
+import * as Sentry from "npm:@sentry/deno";
+
+const SENTRY_DSN_VAL = (globalThis as any).Deno?.env?.get?.("SENTRY_DSN");
+if (SENTRY_DSN_VAL) {
+  try {
+    Sentry.init({ dsn: SENTRY_DSN_VAL, tracesSampleRate: 0.1, environment: "edge-function" });
+  } catch (e) {
+    console.warn("[stripe-webhook] Sentry init failed:", e);
+  }
+}
+
+async function sendEmail(
+  supabaseUrl: string,
+  serviceKey: string,
+  template: "trial_ending" | "payment_failed",
+  toUserId: string,
+  data?: Record<string, unknown>
+) {
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ template, to_user_id: toUserId, data: data ?? {} }),
+    });
+    if (!res.ok) console.warn("[stripe-webhook] email", template, "non-ok", res.status);
+  } catch (e) {
+    console.warn("[stripe-webhook] email", template, "failed:", e);
+  }
+}
+
+async function userIdFromCustomer(
+  admin: any,
+  customerId: string
+): Promise<string | null> {
+  const { data } = await admin
+    .from("subscriptions")
+    .select("user_id")
+    .eq("stripe_customer_id", customerId)
+    .maybeSingle();
+  return data?.user_id ?? null;
+}
+
+async function postHogServerCapture(
+  event: string,
+  distinctId: string,
+  properties: Record<string, unknown> = {}
+) {
+  const key = (globalThis as any).Deno?.env?.get?.("POSTHOG_PROJECT_KEY");
+  const host = (globalThis as any).Deno?.env?.get?.("POSTHOG_HOST");
+  if (!key || !host) return;
+  try {
+    await fetch(`${host}/capture/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: key,
+        event,
+        distinct_id: distinctId,
+        properties: { source: "webhook", ...properties },
+      }),
+    });
+  } catch (e) {
+    console.warn("[stripe-webhook] PostHog capture failed:", e);
+  }
+}
 
 declare const Deno: {
   env: { get(key: string): string | undefined };
@@ -148,16 +217,39 @@ Deno.serve(async (req: Request) => {
           trial_ends_at: null,
           cancel_at_period_end: false,
         });
+        const uid = await userIdFromCustomer(admin, customerId);
+        if (uid) await postHogServerCapture("subscription_canceled", uid);
         break;
       }
 
       case "customer.subscription.trial_will_end": {
-        console.log("[stripe-webhook] trial_will_end:", event.data.object?.id);
+        const sub = event.data.object;
+        const customerId: string =
+          typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
+        console.log("[stripe-webhook] trial_will_end:", sub?.id);
+        if (customerId) {
+          const uid = await userIdFromCustomer(admin, customerId);
+          if (uid) {
+            await sendEmail(supabaseUrl, serviceKey, "trial_ending", uid, {
+              plan: planFromSubscription(sub),
+              trial_ends_at: tsToIso(sub.trial_end),
+            });
+          }
+        }
         break;
       }
 
       case "invoice.payment_failed": {
-        console.log("[stripe-webhook] invoice.payment_failed:", event.data.object?.id);
+        const invoice = event.data.object;
+        const customerId: string | undefined =
+          typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+        console.log("[stripe-webhook] invoice.payment_failed:", invoice?.id);
+        if (customerId) {
+          const uid = await userIdFromCustomer(admin, customerId);
+          if (uid) {
+            await sendEmail(supabaseUrl, serviceKey, "payment_failed", uid);
+          }
+        }
         break;
       }
 
@@ -172,6 +264,9 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("[stripe-webhook] processing error:", reason);
+    try {
+      Sentry.captureException(err, { tags: { function: "stripe-webhook" } });
+    } catch {}
     // Still ack so Stripe doesn't retry indefinitely on app bugs.
   }
 
