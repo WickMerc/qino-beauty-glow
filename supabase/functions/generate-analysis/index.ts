@@ -687,6 +687,9 @@ Deno.serve(async (req: Request) => {
       .update({ status: "complete", completed_at: completedAt })
       .eq("id", scanSessionId);
 
+    // Fire welcome email (non-blocking)
+    fireWelcomeEmail(supabaseUrl, serviceKey, authUserId).catch(() => {});
+
     return json(200, {
       analysis_report_id: analysisReportId,
       status: "complete",
@@ -694,6 +697,12 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[generate-analysis] error:", message, err);
+    try {
+      Sentry.captureException(err, {
+        tags: { function: "generate-analysis" },
+        user: { id: authUserId },
+      });
+    } catch {}
 
     // Best-effort failure cleanup
     if (scanSessionId) {
