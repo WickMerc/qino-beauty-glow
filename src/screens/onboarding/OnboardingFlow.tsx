@@ -8,10 +8,11 @@
 // On `onComplete`, POST the final answers to /api/onboarding.
 // =====================================================================
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { OnboardingAnswers } from "../../types";
 import { emptyOnboardingAnswers, onboardingContent } from "../../data/mockOnboarding";
 import { palette, fonts } from "../../theme";
+import { track } from "../../lib/analytics";
 
 import { OnboardingHeader } from "./_primitives";
 import { StepWelcome } from "./StepWelcome";
@@ -53,8 +54,15 @@ export const OnboardingFlow = ({
   const next = () => setStep((s) => s + 1);
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
-  const finish = (startScan: boolean) =>
+  // Track step views (skip welcome=0; questions are 1..9)
+  useEffect(() => {
+    track("onboarding_step_viewed", { step });
+  }, [step]);
+
+  const finish = (startScan: boolean) => {
+    track("onboarding_completed", { startScan });
     onComplete({ startScan, answers: data } as OnboardingResult);
+  };
 
   return (
     <div
