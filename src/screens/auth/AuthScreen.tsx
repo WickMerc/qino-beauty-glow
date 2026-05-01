@@ -44,8 +44,10 @@ export const AuthScreen = () => {
         });
         if (signErr) {
           setError(signErr.message);
+          track("auth_signup_failed", { reason: signErr.message });
           return;
         }
+        track("auth_signup_submitted", { method: "email" });
         // Auth state listener will hand off; no manual nav needed.
       } else if (mode === "login") {
         const { error: signErr } = await supabase.auth.signInWithPassword({
@@ -54,8 +56,10 @@ export const AuthScreen = () => {
         });
         if (signErr) {
           setError(signErr.message);
+          track("auth_login_failed", { reason: signErr.message });
           return;
         }
+        track("auth_login_submitted", { method: "email" });
       } else {
         const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
           email,
@@ -65,6 +69,7 @@ export const AuthScreen = () => {
           setError(resetErr.message);
           return;
         }
+        track("auth_password_reset_requested");
         setInfo("Check your inbox for a password reset link.");
       }
     } finally {
@@ -76,6 +81,7 @@ export const AuthScreen = () => {
     reset();
     setBusy(true);
     try {
+      track("auth_google_clicked", { mode });
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
