@@ -32,6 +32,15 @@ export const SubscriptionSuccessScreen = () => {
     return () => clearTimeout(t);
   }, [sub, tries]);
 
+  // Fire conversion event once subscription becomes paid.
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (sub.isPaid && !firedRef.current) {
+      firedRef.current = true;
+      track("subscription_activated", { plan: sub.currentPlan ?? "unknown" });
+    }
+  }, [sub.isPaid, sub.currentPlan]);
+
   const ready = sub.isPaid;
 
   return (
