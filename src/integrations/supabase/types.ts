@@ -146,6 +146,7 @@ export type Database = {
           body: Json | null
           budget: string | null
           comfort: Json
+          completed_at: string | null
           created_at: string
           goals: Json
           hair: Json
@@ -160,6 +161,7 @@ export type Database = {
           body?: Json | null
           budget?: string | null
           comfort?: Json
+          completed_at?: string | null
           created_at?: string
           goals?: Json
           hair?: Json
@@ -174,6 +176,7 @@ export type Database = {
           body?: Json | null
           budget?: string | null
           comfort?: Json
+          completed_at?: string | null
           created_at?: string
           goals?: Json
           hair?: Json

@@ -1,0 +1,1 @@
+ALTER TABLE public.onboarding_answers ADD COLUMN completed_at timestamptz;
